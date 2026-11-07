@@ -1,0 +1,1693 @@
+/* ==========================================================================
+   TIDAL Nightfall: black and white theme with sunset accents
+   For TidaLuna, TIDAL desktop
+   Version 1.0.0
+
+   Contents
+     1. Settings          progress animation
+     2. Variables         colours, sizes, TIDAL colour tokens
+     3. Base              global rules for every element
+     4. TIDAL surfaces    badges, tiles, buttons that TIDAL colours itself
+     5. Text
+     6. Title bar         Windows window bar
+     7. Page layout
+     8. Sidebar
+     9. Top bar           back / forward, profile, search field
+    10. Page headers      album, playlist, contributor pages
+    11. Cards
+    12. Search results
+    13. Artist pages
+    14. Play queue
+    15. Player            bottom player, progress bar and its animations
+    16. Fullscreen view
+    17. Menus and tooltips
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1. SETTINGS
+   Change the value, save, then reload the theme in Themer.
+   ========================================================================== */
+
+:root {
+    /* Animation shown in the progress bar of the player:
+         tide      a wave rolls at the playhead
+         stardust  small stars sparkle behind the playhead
+         moon      a little moon at the playhead eats a row of dots
+         aurora    soft northern lights fill the played part
+         notes     music notes float up from the playhead
+         bubbles   bubbles rise through the played part
+         none      plain fill without animation */
+    --theme-progress-effect: notes;
+}
+
+
+/* ==========================================================================
+   2. VARIABLES
+   ========================================================================== */
+
+:root {
+    /* Backgrounds. Pure black keeps pixels switched off on AMOLED screens. */
+    --theme-black: rgb(0, 0, 0);                        /* pages, panels, player */
+    --theme-surface: rgb(9, 10, 15);                    /* search field, tiles, secondary buttons */
+    --theme-surface-hover: rgb(15, 16, 24);             /* those surfaces on hover */
+    --theme-surface-selected: rgb(22, 24, 34);          /* selected entry in the sidebar */
+    --theme-progress-tint: rgba(140, 150, 200, 0.06);   /* tint over the played part of the player */
+
+    /* Text */
+    --theme-text: rgb(255, 255, 255);                   /* main text and icons */
+    --theme-text-muted: rgb(160, 160, 160);             /* secondary text, inactive icons */
+    --theme-text-faint: rgb(105, 105, 105);             /* tertiary text, disabled icons */
+
+    /* Sunrise colours for the sunset in the fullscreen view */
+    --theme-sunrise-indigo: rgb(84, 78, 140);
+    --theme-sunrise-rose: rgb(226, 146, 136);
+    --theme-sunrise-amber: rgb(246, 186, 120);
+
+    /* Accent pair: big titles, stars, playhead tip, slider glow */
+    --theme-accent: rgb(255, 255, 255);
+    --theme-accent-soft: rgb(190, 190, 190);
+
+    /* Outline of panels, menus and buttons. "none" hides all outlines.
+       Example for a thin warm line: 1px solid rgba(232, 156, 128, 0.28) */
+    --theme-border: none;
+
+    /* Filters for cards and playlist entries: dimmed while another one
+       is hovered, full strength when hovered or selected */
+    --theme-dimmed: opacity(50%);
+    --theme-undimmed: opacity(100%);
+
+    /* Player */
+    --theme-player-height: 100px;                       /* height of the bottom player */
+    --theme-seek-zone: 18px;                            /* clickable strip along the top edge of the player */
+    --theme-seek-track: 4px;                            /* thickness of the visible seek line */
+
+    /* Layout */
+    --theme-content-gap: 24px;                          /* gap between sidebar / window edge and page content */
+    --theme-sidebar-top: calc(var(--os-title-bar-height, 30px) + 2vh);  /* top edge of the sidebar */
+    --theme-sidebar-search-space: 56px;                 /* room at the top of the sidebar for the search field */
+
+    /* TIDAL colour tokens. TIDAL's accent family (turquoise) and its
+       "special" family (peach) are set to white and grey. */
+    --wave-color-solid-accent-fill: rgb(255, 255, 255);
+    --wave-color-solid-accent-bright: rgb(255, 255, 255);
+    --wave-color-solid-accent-brighter: rgb(255, 255, 255);
+    --wave-color-solid-accent-dark: rgb(120, 120, 120);
+    --wave-color-opacity-accent-fill-ultra-thick: rgba(255, 255, 255, 0.8);
+    --wave-color-opacity-accent-fill-regular: rgba(255, 255, 255, 0.4);
+    --wave-color-opacity-accent-fill-thin: rgba(255, 255, 255, 0.2);
+    --wave-color-opacity-accent-fill-ultra-thin: rgba(255, 255, 255, 0.1);
+    --wave-color-opacity-accent-dark-ultra-thick: rgba(120, 120, 120, 0.8);
+    --wave-color-text-link: rgb(255, 255, 255);
+
+    --wave-color-solid-special-fill: rgb(255, 255, 255);
+    --wave-color-solid-special-bright: rgb(255, 255, 255);
+    --wave-color-solid-special-dark: rgb(120, 120, 120);
+    --wave-color-opacity-special-fill-ultra-thick: rgba(255, 255, 255, 0.8);
+    --wave-color-opacity-special-fill-regular: rgba(255, 255, 255, 0.4);
+    --wave-color-opacity-special-fill-thin: rgba(255, 255, 255, 0.2);
+    --wave-color-opacity-special-fill-ultra-thin: rgba(255, 255, 255, 0.1);
+}
+
+
+/* ==========================================================================
+   3. BASE
+   ========================================================================== */
+
+/* No underlined links, no visible scrollbars */
+* {
+    text-decoration: none !important;
+    scrollbar-width: none !important;
+}
+
+.os-scrollbar {
+    display: none;
+}
+
+/* No frosted glass anywhere: every surface is a solid colour */
+*,
+*::before,
+*::after {
+    backdrop-filter: none !important;
+}
+
+/* Square corners everywhere. The progress fill is left out because its
+   animations draw round shapes (moon, glow). */
+*,
+*:not([data-test="progress-indicator"])::before,
+*:not([data-test="progress-indicator"])::after {
+    border-radius: 0 !important;
+}
+
+/* App background: black with a few faint stars. The stars only show
+   where TIDAL leaves the background uncovered. */
+body {
+    background-color: var(--theme-black) !important;
+    background-image:
+        radial-gradient(circle at 12% 18%, rgba(238, 232, 224, 0.45) 0 0.8px, transparent 1.3px),
+        radial-gradient(circle at 37% 64%, rgba(238, 232, 224, 0.3) 0 0.7px, transparent 1.2px),
+        radial-gradient(circle at 58% 9%, color-mix(in srgb, var(--theme-accent) 35%, transparent) 0 0.8px, transparent 1.3px),
+        radial-gradient(circle at 71% 47%, rgba(238, 232, 224, 0.25) 0 0.6px, transparent 1.1px),
+        radial-gradient(circle at 86% 82%, rgba(238, 232, 224, 0.4) 0 0.8px, transparent 1.3px),
+        radial-gradient(circle at 23% 91%, color-mix(in srgb, var(--theme-accent-soft) 30%, transparent) 0 0.7px, transparent 1.2px),
+        radial-gradient(circle at 94% 26%, rgba(238, 232, 224, 0.3) 0 0.6px, transparent 1.1px);
+    background-size: 460px 340px;
+}
+
+/* Album, playlist and track pages: TIDAL fades the page into the cover
+   colour (inline --album-color). Removed, the page stays black. */
+[class*="_solidColor_"] {
+    background: none !important;
+}
+
+/* Divider lines between sections */
+[class*="divider"] {
+    display: none;
+}
+
+/* Slightly larger demi-bold body text */
+[class="wave-text-body-demi"] {
+    font-size: 14px;
+}
+
+
+/* ==========================================================================
+   4. TIDAL SURFACES
+   Elements that TIDAL colours on its own, moved onto the theme colours.
+   ========================================================================== */
+
+/* Badge on spotlighted content: accent colour, no drop shadow */
+#spotlighted-badge {
+    filter: none !important;
+}
+
+#spotlighted-badge * {
+    fill: var(--wave-color-solid-accent-fill) !important;
+}
+
+/* Small format tags */
+[class="format-info"] {
+    font-size: 11px !important;
+    max-width: 50px;
+    padding: 7px;
+    background: transparent;
+}
+
+/* Quality badge in the player ("16-bit 44.1kHz"). TIDAL sets its text
+   colour directly, so it is overridden here: muted text, no background,
+   brighter on hover. */
+[data-test^="quality-badge"] {
+    background: transparent !important;
+    border: var(--theme-border);
+    padding: 6px 10px;
+}
+
+[data-test^="quality-badge"]::before,
+[data-test^="quality-badge"]::after,
+[data-test^="quality-badge"] * {
+    background: transparent !important;
+}
+
+[data-test^="quality-badge"],
+[data-test^="quality-badge"] * {
+    color: var(--theme-text-muted) !important;
+    letter-spacing: 0.04em;
+}
+
+[data-test^="quality-badge"]:hover,
+[data-test^="quality-badge"]:hover * {
+    color: var(--theme-text) !important;
+}
+
+/* Playlist shortcut tiles on the home page */
+[class*="_shortcutItem_"] {
+    background-color: var(--theme-surface) !important;
+}
+
+[class*="_shortcutItem_"]:hover {
+    background-color: var(--theme-surface-hover) !important;
+}
+
+/* Selected entry in the sidebar menu */
+[data-test^="sidebar-"][class*="_selected_"] {
+    background-color: var(--theme-surface-selected) !important;
+}
+
+/* Secondary buttons, e.g. "Shuffle" */
+[class*="_marketButton_"][class*="_secondary_"] {
+    background-color: var(--theme-surface) !important;
+}
+
+[class*="_marketButton_"][class*="_secondary_"]:hover {
+    background-color: var(--theme-surface-hover) !important;
+}
+
+/* "Next up" box in the player */
+[data-test="footer-player"] .upnext-container {
+    background-color: var(--theme-surface) !important;
+}
+
+
+/* ==========================================================================
+   5. TEXT
+   ========================================================================== */
+
+[class*="headerContainer"] > h2 {
+    font-size: 30px !important;
+    color: var(--theme-text);
+}
+
+[class*="heading"] {
+    color: var(--theme-text);
+}
+
+/* Page titles and artist names: text colour running into the accent.
+   The gradient stops are in px, so short titles get the shift too. */
+h1,
+[data-test="artist-name"] {
+    color: transparent !important;
+    background-image: linear-gradient(
+        90deg,
+        var(--theme-text) 0,
+        var(--theme-accent-soft) 260px,
+        var(--theme-accent) 480px
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+h1 {
+    font-size: 30px !important;
+}
+
+[data-test="artist-name"] {
+    font-size: 60px;
+    line-height: 70px !important;
+}
+
+[data-test="follow-text-button"] {
+    margin-bottom: 15px;
+}
+
+/* Unread counter next to "Feed": just the number */
+[data-test="feed-counter"] {
+    background: transparent !important;
+    color: var(--theme-text) !important;
+}
+
+[data-wave-color=textSecondary] {
+    color: var(--theme-text-muted);
+}
+
+[data-wave-color="textTertiary"] {
+    color: var(--theme-text-faint);
+}
+
+
+/* ==========================================================================
+   6. TITLE BAR
+   The Windows bar with the window buttons at the very top.
+   ========================================================================== */
+
+[class*="_bar_"] {
+    background: var(--theme-black) !important;
+    border: none !important;
+}
+
+div[class^="_bar_"] > div[class^="_title_"] * {
+    color: var(--theme-text-muted) !important;
+}
+
+/* Minimise / maximise / close: faint until hovered */
+div[class*="_bar_"] button[class*="_button_"] {
+    background: transparent;
+}
+
+div[class*="_bar_"] button[class*="_button_"] svg {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+div[class*="_bar_"] button[class*="_button_"]:hover svg {
+    color: rgba(255, 255, 255, 1);
+}
+
+
+/* ==========================================================================
+   7. PAGE LAYOUT
+   ========================================================================== */
+
+/* Main area. It is pulled left under the floating sidebar, so it spans
+   the whole window width. The background is forced to black because
+   TidaLuna's settings page sets its own gradient here. */
+#main {
+    background: var(--theme-black) !important;
+    height: 100svh;
+    left: calc(var(--sidebarWidth) * -1);
+    padding-left: 50px;
+    max-height: calc(100svh - var(--os-title-bar-height));
+    margin-top: 0;
+    min-width: 100vw;
+    --playQueueWidth: 0px;
+}
+
+/* Page content: starts one gap to the right of the sidebar and ends one
+   gap before the window edge. The 50px is #main's left padding. */
+.mainContent {
+    min-height: 100svh !important;
+    margin-left: calc(var(--sidebarWidth) + var(--theme-content-gap) - 50px);
+    width: calc(100vw - var(--sidebarWidth) - 2 * var(--theme-content-gap));
+    padding-bottom: var(--miniPlayerHeight);
+}
+
+[data-test="home-page-feed"] {
+    margin-top: 20px;
+}
+
+[class*="feed"] {
+    width: 100vw;
+}
+
+/* TidaLuna settings page */
+[class*="MuiContainer"] {
+    transform: translateX(-7vw);
+    margin-top: 90px;
+    padding-bottom: 40px;
+}
+
+[class*="_sectionHeader"] {
+    position: relative;
+    background-color: transparent;
+}
+
+
+/* ==========================================================================
+   8. SIDEBAR
+   ========================================================================== */
+
+/* Floating sidebar: starts 2vh below the title bar and ends 2vh above
+   the player */
+[class*="_sidebarWrapper_"] {
+    top: 2vh;
+    height: calc(100svh - var(--os-title-bar-height, 30px) - 4vh - var(--theme-player-height));
+    border: var(--theme-border);
+    border-left: none;
+    background-color: var(--theme-black);
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[class*="_sidebarWrapper_"]::after {
+    display: none;
+}
+
+[aria-label="Navigation sidebar"] {
+    background-color: transparent;
+}
+
+/* Room at the top for the search field (placed there in section 9) */
+aside#sidebar {
+    padding-top: var(--theme-sidebar-search-space);
+}
+
+/* TIDAL logo and collapse button at the top of the sidebar: hidden */
+aside#sidebar > div[class*="_header_"] {
+    display: none;
+}
+
+/* Menu entries grow slightly on hover */
+[class*="_navLinkInnerLayout_"] {
+    background-color: transparent;
+    transition: background-color 0.4s ease, transform 0.4s ease;
+}
+
+[class*="_navLinkInnerLayout_"]:hover {
+    background-color: var(--theme-black);
+    transform: scale(1.03);
+}
+
+[class*="_expandableSectionTitle_"] {
+    transition: transform 0.4s ease;
+}
+
+[class*="_expandableSectionTitle_"]:hover {
+    transform: scale(1.03);
+}
+
+/* Playlist list: hovering one entry dims the others */
+[aria-label="Playlists"] [class*="_contentItem_"] {
+    transition: filter 0.4s ease-in-out, transform 0.3s ease;
+}
+
+[aria-label="Playlists"]:hover [class*="_contentItem_"] {
+    filter: var(--theme-dimmed) !important;
+}
+
+[aria-label="Playlists"] [class*="_contentItem_"]:hover,
+[aria-label="Playlists"] [class*="_selected_"] {
+    filter: var(--theme-undimmed) !important;
+    transform: scale(1.03);
+}
+
+[data-test="user-profile-avatar"] {
+    background-color: transparent;
+    border: var(--theme-border);
+}
+
+/* Wider "add" button in the sidebar. The "add collaborator" button on
+   playlist pages has the same class but is too narrow for this padding. */
+[class*="_addButton_"]:not([data-test="add-collaborator"]) {
+    padding-left: 22px;
+    padding-right: 22px;
+}
+
+/* "+" next to the playlist creator */
+[data-test="add-collaborator"] {
+    background-color: var(--theme-black) !important;
+    color: var(--theme-text);
+}
+
+
+/* ==========================================================================
+   9. TOP BAR
+   Back / forward on the left, profile button on the right. The search
+   field is shown at the top of the sidebar.
+   ========================================================================== */
+
+/* TIDAL fixes this bar to the window. It is stretched between the
+   sidebar and the right window edge. */
+#mainHeader {
+    left: calc(var(--sidebarWidth) + var(--theme-content-gap));
+    right: var(--theme-content-gap);
+    width: auto;
+    margin: 0;
+    z-index: 50;
+    background: var(--theme-black);
+    border-bottom: var(--theme-border);
+    overflow: visible;
+}
+
+#mainHeader [data-test="header"] {
+    width: 100%;
+}
+
+/* Pushes the profile button to the right end */
+#mainHeader [data-test="header"] > [class*="_buttonContainer_"] {
+    margin-left: auto;
+}
+
+/* Back / forward: plain icons, brighter on hover, dim when disabled */
+[data-test="navigation-arrows"] {
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+[data-test="navigation-arrows"] button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: var(--theme-text-muted);
+    transition: color 0.2s ease;
+}
+
+[data-test="navigation-arrows"] button::before,
+[data-test="navigation-arrows"] button::after {
+    display: none !important;
+}
+
+[data-test="navigation-arrows"] button:hover:not(:disabled) {
+    color: var(--theme-text);
+}
+
+[data-test="navigation-arrows"] button:disabled {
+    color: var(--theme-text-faint);
+}
+
+/* Profile button: plain light icon. Only the background colour is
+   cleared inside it, so a profile photo stays visible. */
+[data-test="header-profile-menu-button"],
+[data-test="header-profile-menu-button"] * {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+[data-test="header-profile-menu-button"] {
+    color: var(--theme-text);
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+}
+
+[data-test="header-profile-menu-button"]:hover {
+    opacity: 1;
+}
+
+/* Search field, shown at the top of the sidebar. It belongs to the top
+   bar in TIDAL's markup and is placed over the sidebar with
+   position: fixed. TIDAL hides it when the bar seems too narrow, so
+   display is forced. */
+#mainHeader [data-test="search-popover-container"] {
+    display: block !important;
+    position: fixed !important;
+    z-index: 2;
+    top: calc(var(--theme-sidebar-top) + 14px);
+    left: 16px;
+    width: calc(var(--sidebarWidth) - 32px);
+    margin: 0;
+}
+
+[data-type="search-field"] {
+    width: 100%;
+    background-color: var(--theme-surface) !important;
+    border: var(--theme-border);
+    box-shadow: none;
+}
+
+/* Search results panel below the field: wider than the sidebar and on
+   a slightly lighter surface */
+div[data-test="query-suggestions"] {
+    margin-left: 0;
+    margin-top: 10px;
+    width: min(640px, 70vw);
+    height: calc(80vh - var(--miniPlayerHeight));
+    background-color: var(--theme-surface);
+    border: var(--theme-border);
+}
+
+div[data-test="query-suggestions"] div[class*="_icon_"] {
+    background: transparent;
+}
+
+/* While the search results are open, everything except the search field
+   and the results is dimmed. TIDAL only renders the results panel while
+   it is open, which is what :has() reacts to. The dim layer sits between
+   the top bar's own content and the search field. Clicking it closes
+   the results. */
+body:has([data-test="query-suggestions"]) #mainHeader {
+    z-index: 1000;
+}
+
+body:has([data-test="query-suggestions"]) #mainHeader::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: rgba(0, 0, 0, 0.8);
+    animation: theme-fade-in 0.15s ease-out;
+}
+
+@keyframes theme-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+
+/* ==========================================================================
+   10. PAGE HEADERS
+   ========================================================================== */
+
+/* Compact header that appears when scrolling a page */
+[class^="_smallHeader_"] {
+    background: none !important;
+    margin-top: -40px;
+}
+
+div[class^="_smallHeader_"]::before {
+    background-color: var(--theme-black);
+    left: 0;
+    right: 0;
+    width: 100vw;
+    margin-top: -40px;
+}
+
+/* Header on contributor pages */
+div[data-test-module-type="CONTRIBUTOR_HEADER"] header[class*="container"] {
+    background-color: var(--theme-black);
+    border-bottom: var(--theme-border);
+    left: 0;
+    padding-left: 120px;
+    padding-right: 5%;
+    height: 140px;
+}
+
+/* Playlist pages: TIDAL paints the cover colour behind the header
+   (inline --color). Removed, the page stays black. */
+[class*="dataContainer"]::before {
+    background: none !important;
+}
+
+
+/* ==========================================================================
+   11. CARDS
+   ========================================================================== */
+
+/* Horizontal card rows may scroll past the content edges while the first
+   card stays aligned with the page */
+[class*="cardContainer"] {
+    margin-left: -20vh;
+    margin-right: -20vh;
+    padding-left: 20vh;
+    padding-right: 20vh;
+    scroll-padding: 20vh;
+}
+
+[class*="cardContainer"][class*="buttonContainer"] {
+    transform: translateX(-150px);
+}
+
+/* Cover images are dimmed and light up when hovered */
+[class*="_card_"] [class*="_imageContainer_"] {
+    overflow: hidden;
+    transition: filter 0.6s ease-in-out, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[class*="cardContainer"] [class*="_imageContainer_"] {
+    filter: var(--theme-dimmed) !important;
+}
+
+[class*="_card_"] [class*="_imageContainer_"]:hover {
+    filter: var(--theme-undimmed) !important;
+    transform: scale(1.03);
+}
+
+[data-test="horizontal-list--YOUR_FAVORITE_ARTISTS-scroll"] [class*="_imageContainer_"] {
+    height: 300px;
+}
+
+div[class^="_overlay_"] {
+    background: none;
+}
+
+
+/* ==========================================================================
+   12. SEARCH RESULTS
+   ========================================================================== */
+
+/* Filter bar (Top result, Profiles, Tracks, ...): a solid black block
+   that stays above the results while scrolling */
+[data-test*="search-results"] > [class*="container"] {
+    z-index: 10;
+    background: var(--theme-black) !important;
+}
+
+[data-test*="search-results"] > [class*="container"]::before {
+    display: none;
+}
+
+[class*="resultsContainer"] {
+    padding: 10px;
+}
+
+
+/* ==========================================================================
+   13. ARTIST PAGES
+   ========================================================================== */
+
+[data-test="artist-profile-header"] [class*="background"] {
+    width: 100vw;
+}
+
+/* Info box on the artist image */
+[class*="_dataContainer_"] > div > div:nth-child(3) {
+    margin-left: -15px;
+    padding: 15px;
+    max-width: 50%;
+    margin-bottom: 10px;
+    border: var(--theme-border);
+    background-color: var(--theme-black);
+}
+
+[class*="backgroundBlur"] {
+    display: none;
+}
+
+
+/* ==========================================================================
+   14. PLAY QUEUE
+   ========================================================================== */
+
+[class*="playQueueWrapper"] {
+    height: 100svh;
+    margin-left: calc(var(--playQueueWidth) * -1 - 480px);
+}
+
+/* Solid black, without TIDAL's grey gradient on top */
+#playQueueSidebar {
+    background-color: var(--theme-black) !important;
+    background-image: none !important;
+}
+
+[aria-label="Play queue"] > div:last-child {
+    padding-bottom: 60px;
+}
+
+[class*="stickyHeader"] {
+    background: transparent;
+    position: relative;
+}
+
+[class*="stickyHeader"]::after {
+    display: none;
+}
+
+
+/* ==========================================================================
+   15. PLAYER
+   The bottom player spans the full window width. It is built in three
+   layers, all positioned relative to the player itself:
+     ::before       black surface                       (z-index -1)
+     progress bar   fill over the whole player          (z-index  0)
+     columns        cover and title, controls, buttons  (z-index  1)
+   The player keeps transform: translateX(-50%). The transform makes it
+   the reference box for its position: fixed children, which is how the
+   progress bar is pinned to the player with inset: 0.
+   ========================================================================== */
+
+[data-test="footer-player"] {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    height: var(--theme-player-height);
+    bottom: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* In the fullscreen view TIDAL moves the player to the left
+   (.nowPlayingVisible). The id selector keeps it centred. */
+#footerPlayer.nowPlayingVisible {
+    left: 50%;
+    margin-left: 0;
+}
+
+/* TIDAL's own grey player surface: cleared */
+[data-test="footer-player"]::after {
+    background-color: transparent !important;
+}
+
+/* The theme's player surface */
+[data-test="footer-player"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--theme-black);
+    border-top: var(--theme-border);
+    pointer-events: none;
+}
+
+/* In the fullscreen view the player has no surface, so the sunset of
+   the background reaches down to the bottom edge */
+#footerPlayer.nowPlayingVisible::before {
+    background: transparent;
+}
+
+[data-test="left-column-footer-player"],
+[data-test="play-controls"],
+[data-test="footer-player"] > div:last-child {
+    z-index: 1;
+}
+
+/* ---------- Progress bar --------------------------------------------------
+
+   The whole player acts as the progress bar: the played part is tinted,
+   and a thin seek line runs along the top edge. */
+
+[data-test="footer-player"] [aria-label="Progress bar"] {
+    position: fixed;
+    inset: 0;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    transform: none;
+    z-index: 0;
+    /* Unplayed part of the seek line */
+    background: linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.16))
+        top left / 100% var(--theme-seek-track) no-repeat;
+    transition: background-size 0.15s ease;
+    /* TIDAL's fill is a full-width block shifted to the left; this cuts
+       it off at the left edge of the player */
+    overflow: hidden;
+    pointer-events: none;
+}
+
+[data-test="footer-player"] [aria-label="Progress bar"] [class*="_range_"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+[data-test="footer-player"] [aria-label="Progress bar"] [class*="_range_"]::before,
+[data-test="footer-player"] [aria-label="Progress bar"] [class*="_range_"]::after {
+    display: none;
+}
+
+/* The fill. TIDAL moves it with its own transform; its right edge is
+   the playhead. Its background draws, from top to bottom layer:
+     - a short accent-coloured tip at the playhead end of the seek line
+     - the played part of the seek line
+     - the tint over the played part
+   The thin vertical line at its right edge marks the playhead; some
+   animations replace it. */
+[data-test="footer-player"] [data-test="progress-indicator"] {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    background:
+        linear-gradient(to left, var(--theme-accent) 0 4px, transparent 4px)
+            top right / 100% var(--theme-seek-track) no-repeat,
+        linear-gradient(var(--theme-text), var(--theme-text))
+            top left / 100% var(--theme-seek-track) no-repeat,
+        var(--theme-progress-tint);
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.28);
+    transition: background-size 0.15s ease;
+}
+
+/* The seek line gets thicker while the mouse is over the seek zone */
+[data-test="footer-player"] [aria-label="Progress bar"]:has([data-test="interaction-layer"]:hover) {
+    --theme-seek-track: 8px;
+}
+
+/* TIDAL's drag handle on the progress bar is hidden: the seek line and
+   its tip already show the position, and the handle does not line up
+   with the full-width bar. */
+#progressBar [class*="_knob_"] {
+    display: none !important;
+}
+
+/* ---------- Progress animations -------------------------------------------
+
+   Every animation draws on the two pseudo-elements of the fill, because
+   the fill is the part that moves with the playhead. The block that runs
+   is picked by --theme-progress-effect (section 1) through a style query.
+   Browsers without style queries show the plain fill. */
+
+[data-test="footer-player"] [data-test="progress-indicator"]::before,
+[data-test="footer-player"] [data-test="progress-indicator"]::after {
+    content: "";
+    display: block;
+    position: absolute;
+    pointer-events: none;
+}
+
+/* tide
+   A wave at the playhead, made of two vertically repeating SVG waves:
+     ::before   faint ripple line, wider and slower, moving up
+     ::after    wave in the colour of the fill, with a bright crest
+   Each layer is one tile taller than the player and moves by exactly one
+   tile, which makes the loop seamless. The wave fill colour in the front
+   SVG matches --theme-progress-tint; change both together. */
+@container style(--theme-progress-effect: tide) {
+    [data-test="footer-player"] [data-test="progress-indicator"] {
+        box-shadow: none;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::before,
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        left: calc(100% - 1px);
+        background-repeat: repeat-y;
+        background-position: 0 0;
+        will-change: transform;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::before {
+        --tide-tile: 64px;
+        top: calc(var(--tide-tile) * -1);
+        width: 20px;
+        height: calc(100% + var(--tide-tile));
+        background-size: 20px var(--tide-tile);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='40' viewBox='0 0 14 40' preserveAspectRatio='none'%3E%3Cpath d='M2 -10C2 -6 5 -3 7 0C9 3 12 6 12 10C12 14 9 17 7 20C5 23 2 26 2 30C2 34 5 37 7 40C9 43 12 46 12 50' fill='none' stroke='white' stroke-opacity='0.18' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+        animation: theme-tide-back 4.2s linear infinite reverse;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        --tide-tile: 40px;
+        top: calc(var(--tide-tile) * -1);
+        width: 14px;
+        height: calc(100% + var(--tide-tile));
+        background-size: 14px var(--tide-tile);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='40' viewBox='0 0 14 40'%3E%3Cpath d='M1 0H7C9 3 12 6 12 10C12 14 9 17 7 20C5 23 2 26 2 30C2 34 5 37 7 40H1Z' fill='rgb(140,150,200)' fill-opacity='0.06'/%3E%3Cpath d='M2 -10C2 -6 5 -3 7 0C9 3 12 6 12 10C12 14 9 17 7 20C5 23 2 26 2 30C2 34 5 37 7 40C9 43 12 46 12 50' fill='none' stroke='white' stroke-opacity='0.4' stroke-width='1.2'/%3E%3C/svg%3E");
+        animation: theme-tide-front 2.6s linear infinite;
+    }
+}
+
+@keyframes theme-tide-front {
+    from { transform: translateY(0); }
+    to   { transform: translateY(40px); }
+}
+
+@keyframes theme-tide-back {
+    from { transform: translateY(0); }
+    to   { transform: translateY(64px); }
+}
+
+
+/* stardust
+   Small stars that sparkle behind the playhead, densest right at the
+   playhead. Each star is its own background layer whose size grows from
+   zero, holds for half the cycle, and shrinks again, each at its own
+   moment. The two layers use different cycle lengths, so the pattern
+   hardly repeats. A mask fades out the stars further back. */
+@container style(--theme-progress-effect: stardust) {
+    [data-test="footer-player"] [data-test="progress-indicator"]::before,
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        top: 0;
+        bottom: 0;
+        right: 1px;
+        width: 200px;
+        background-repeat: no-repeat;
+        -webkit-mask-image: linear-gradient(to left, black 35%, transparent);
+        mask-image: linear-gradient(to left, black 35%, transparent);
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::before {
+        background-image:
+            radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 16%, rgba(255, 255, 255, 0.3) 30%, transparent 60%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 85%, transparent) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 16%, rgba(255, 255, 255, 0.3) 30%, transparent 60%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 85%, transparent) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%);
+        background-position:
+            right 0px top 30%,
+            right 3px top 64%,
+            right 6px top 46%,
+            right 9px top 18%,
+            right 12px top 80%,
+            right 13px top 40%,
+            right 21px top 60%,
+            right 27px top 24%,
+            right 36px top 72%,
+            right 50px top 34%,
+            right 68px top 56%,
+            right 91px top 20%,
+            right 117px top 74%,
+            right 149px top 42%;
+        background-size: 10px 10px, 5px 5px, 4px 4px, 4px 4px, 5px 5px, 10px 10px, 4px 4px, 4px 4px, 4px 4px, 4px 4px, 4px 4px, 3px 3px, 3px 3px, 3px 3px;
+        animation: theme-stardust-a 9s linear infinite;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        background-image:
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 16%, rgba(255, 255, 255, 0.3) 30%, transparent 60%),
+            radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 85%, transparent) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 16%, rgba(255, 255, 255, 0.3) 30%, transparent 60%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 85%, transparent) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 30%, transparent 58%);
+        background-position:
+            right 1px top 54%,
+            right 4px top 22%,
+            right 4px top 76%,
+            right 11px top 38%,
+            right 15px top 66%,
+            right 19px top 14%,
+            right 22px top 48%,
+            right 32px top 84%,
+            right 43px top 28%,
+            right 59px top 62%,
+            right 81px top 44%,
+            right 129px top 30%;
+        background-size: 5px 5px, 4px 4px, 10px 10px, 4px 4px, 4px 4px, 5px 5px, 8px 8px, 4px 4px, 4px 4px, 3px 3px, 3px 3px, 3px 3px;
+        animation: theme-stardust-b 12.5s linear infinite;
+    }
+}
+
+@keyframes theme-stardust-a {
+    0.0% { background-size: 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 1.43px 1.43px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 3.0px 3.0px; }
+    1.0% { background-size: 1.43px 1.43px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.71px 0.71px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 3.0px 3.0px; }
+    2.0% { background-size: 2.86px 2.86px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 2.57px 2.57px, 3.0px 3.0px; }
+    6.0% { background-size: 8.57px 8.57px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.86px 0.86px, 3.0px 3.0px; }
+    7.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 3.43px 3.43px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.43px 0.43px, 3.0px 3.0px; }
+    8.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 2.86px 2.86px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    13.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 2.86px 2.86px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    14.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 3.43px 3.43px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    15.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 3.43px 3.43px, 0.57px 0.57px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    21.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    22.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.43px 0.43px, 0.0px 0.0px, 3.0px 3.0px; }
+    27.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 1.14px 1.14px, 2.57px 2.57px, 0.0px 0.0px, 3.0px 3.0px; }
+    28.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 10.0px 10.0px, 0.57px 0.57px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.57px 0.57px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    29.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 10.0px 10.0px, 1.14px 1.14px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    34.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 2.86px 2.86px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    36.0% { background-size: 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    43.0% { background-size: 10.0px 10.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 0.0px 0.0px; }
+    45.0% { background-size: 7.14px 7.14px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 0.0px 0.0px; }
+    50.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 2.86px 2.86px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 0.0px 0.0px; }
+    51.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 3.43px 3.43px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 0.0px 0.0px; }
+    52.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.43px 3.43px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 0.0px 0.0px; }
+    57.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 3.57px 3.57px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.57px 0.57px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 0.0px 0.0px; }
+    58.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 3.43px 3.43px, 4.29px 4.29px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 0.0px 0.0px; }
+    59.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 2.86px 2.86px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.43px 0.43px, 0.0px 0.0px; }
+    63.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.57px 0.57px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 2.14px 2.14px, 0.0px 0.0px; }
+    64.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 0.57px 0.57px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 2.57px 2.57px, 0.0px 0.0px; }
+    65.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 1.14px 1.14px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 2.57px 2.57px, 3.0px 3.0px, 0.0px 0.0px; }
+    70.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.43px 0.43px, 3.0px 3.0px, 0.0px 0.0px; }
+    71.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 3.43px 3.43px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    77.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 3.43px 3.43px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    78.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 4.0px 4.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    79.0% { background-size: 0.0px 0.0px, 5.0px 5.0px, 4.0px 4.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    86.0% { background-size: 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    88.0% { background-size: 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 5.0px 5.0px, 2.86px 2.86px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    93.0% { background-size: 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 5.0px 5.0px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 1.14px 1.14px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    95.0% { background-size: 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 5.0px 5.0px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.86px 0.86px; }
+    100.0% { background-size: 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 1.43px 1.43px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 3.0px 3.0px; }
+}
+
+@keyframes theme-stardust-b {
+    0.0% { background-size: 0.0px 0.0px, 2.86px 2.86px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    4.0% { background-size: 0.0px 0.0px, 0.57px 0.57px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    5.0% { background-size: 0.0px 0.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.71px 0.71px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    11.0% { background-size: 0.0px 0.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.43px 0.43px, 0.0px 0.0px, 3.0px 3.0px; }
+    12.0% { background-size: 0.0px 0.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    18.0% { background-size: 0.0px 0.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.57px 0.57px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 3.43px 3.43px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    19.0% { background-size: 0.71px 0.71px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 2.57px 2.57px; }
+    24.0% { background-size: 4.29px 4.29px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 4.0px 4.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 0.43px 0.43px; }
+    25.0% { background-size: 5.0px 5.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 3.43px 3.43px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 0.0px 0.0px; }
+    31.0% { background-size: 5.0px 5.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 0.0px 0.0px; }
+    33.0% { background-size: 5.0px 5.0px, 0.0px 0.0px, 10.0px 10.0px, 0.0px 0.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 0.0px 0.0px; }
+    38.0% { background-size: 5.0px 5.0px, 0.0px 0.0px, 2.86px 2.86px, 2.86px 2.86px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 0.0px 0.0px; }
+    40.0% { background-size: 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.86px 0.86px, 0.0px 0.0px; }
+    45.0% { background-size: 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    47.0% { background-size: 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    54.0% { background-size: 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 8.0px 8.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    55.0% { background-size: 5.0px 5.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 8.0px 8.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    61.0% { background-size: 5.0px 5.0px, 3.43px 3.43px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 8.0px 8.0px, 0.0px 0.0px, 0.57px 0.57px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    62.0% { background-size: 4.29px 4.29px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 8.0px 8.0px, 0.0px 0.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    68.0% { background-size: 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 8.0px 8.0px, 0.0px 0.0px, 0.0px 0.0px, 2.57px 2.57px, 3.0px 3.0px, 0.0px 0.0px; }
+    69.0% { background-size: 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 8.0px 8.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    75.0% { background-size: 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 3.43px 3.43px, 0.0px 0.0px, 8.0px 8.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 3.0px 3.0px, 0.0px 0.0px; }
+    76.0% { background-size: 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 4.0px 4.0px, 4.0px 4.0px, 0.0px 0.0px, 8.0px 8.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 3.0px 3.0px, 0.43px 0.43px; }
+    81.0% { background-size: 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 1.14px 1.14px, 4.0px 4.0px, 0.0px 0.0px, 8.0px 8.0px, 0.0px 0.0px, 0.0px 0.0px, 3.0px 3.0px, 3.0px 3.0px, 2.57px 2.57px; }
+    82.0% { background-size: 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.57px 0.57px, 4.0px 4.0px, 0.0px 0.0px, 8.0px 8.0px, 0.57px 0.57px, 0.0px 0.0px, 3.0px 3.0px, 2.57px 2.57px, 3.0px 3.0px; }
+    83.0% { background-size: 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 8.0px 8.0px, 1.14px 1.14px, 0.0px 0.0px, 3.0px 3.0px, 2.14px 2.14px, 3.0px 3.0px; }
+    88.0% { background-size: 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 8.0px 8.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    90.0% { background-size: 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 8.0px 8.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    97.0% { background-size: 0.0px 0.0px, 4.0px 4.0px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    98.0% { background-size: 0.0px 0.0px, 4.0px 4.0px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+    100.0% { background-size: 0.0px 0.0px, 2.86px 2.86px, 10.0px 10.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 0.0px 0.0px, 4.0px 4.0px, 0.0px 0.0px, 3.0px 3.0px, 0.0px 0.0px, 3.0px 3.0px; }
+}
+
+
+/* moon
+   A small moon with craters and an eye sits at the playhead and keeps
+   opening and closing its mouth. A row of dots glides into the mouth,
+   one dot per bite.
+     ::before   the dots: 14px apart, moving 14px per bite
+     ::after    the moon; the mouth is a cone-shaped mask whose angle is
+                animated through the registered property below */
+@property --theme-moon-mouth {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 40deg;
+}
+
+@container style(--theme-progress-effect: moon) {
+    [data-test="footer-player"] [data-test="progress-indicator"] {
+        box-shadow: none;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::before {
+        top: 14px;
+        left: calc(100% + 6px);
+        width: 100vw;
+        height: 4px;
+        background: radial-gradient(circle at 7px 2px, rgba(238, 232, 224, 0.5) 0 1.5px, transparent 2px) 0 0 / 14px 4px repeat-x;
+        animation: theme-moon-dots 0.45s linear infinite;
+        will-change: transform;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        top: 7px;
+        left: calc(100% - 3px);
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background:
+            radial-gradient(circle at 58% 24%, rgba(20, 20, 20, 0.85) 0 1.3px, transparent 1.8px),
+            radial-gradient(circle at 30% 34%, rgba(0, 0, 0, 0.14) 0 2px, transparent 2.5px),
+            radial-gradient(circle at 40% 72%, rgba(0, 0, 0, 0.12) 0 1.6px, transparent 2.1px),
+            radial-gradient(circle at 22% 58%, rgba(0, 0, 0, 0.1) 0 1.1px, transparent 1.6px),
+            radial-gradient(circle at 38% 38%, rgb(246, 244, 234), rgb(214, 211, 198));
+        -webkit-mask-image: conic-gradient(
+            from calc(90deg + var(--theme-moon-mouth) / 2),
+            #000 calc(360deg - var(--theme-moon-mouth)),
+            transparent 0
+        );
+        mask-image: conic-gradient(
+            from calc(90deg + var(--theme-moon-mouth) / 2),
+            #000 calc(360deg - var(--theme-moon-mouth)),
+            transparent 0
+        );
+        animation: theme-moon-chomp 0.45s ease-in-out infinite;
+    }
+}
+
+@keyframes theme-moon-chomp {
+    0%, 100% { --theme-moon-mouth: 70deg; }
+    50%      { --theme-moon-mouth: 2deg; }
+}
+
+@keyframes theme-moon-dots {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-14px); }
+}
+
+
+/* aurora
+   Soft northern lights in sunrise colours across the played part. Two
+   bands of wide, flat glows, blurred so no edges remain:
+     - translate   drifts each band sideways by one full pattern width
+                   (seamless) and lifts it a little on the way
+     - transform   tilts and stretches the band, so the light keeps
+                   changing shape
+   Both bands move in opposite directions at different speeds. */
+@container style(--theme-progress-effect: aurora) {
+    [data-test="footer-player"] [data-test="progress-indicator"] {
+        overflow: hidden;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::before,
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        top: -24px;
+        bottom: -24px;
+        right: 0;
+        background-repeat: repeat-x;
+        filter: blur(14px);
+        transform-origin: 50% 100%;
+        will-change: transform, translate;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::before {
+        left: -560px;
+        background-size: 560px 100%;
+        background-image:
+            radial-gradient(ellipse 120px 22px at 130px 62%, rgba(226, 146, 136, 0.55), transparent 70%),
+            radial-gradient(ellipse 140px 26px at 300px 50%, rgba(246, 186, 120, 0.45), transparent 70%),
+            radial-gradient(ellipse 100px 20px at 450px 60%, rgba(226, 146, 136, 0.5), transparent 70%),
+            radial-gradient(ellipse 90px 34px at 360px 72%, rgba(150, 130, 230, 0.32), transparent 70%);
+        transform: skewX(-12deg) scaleY(1);
+        animation:
+            theme-aurora-drift-a 16s linear infinite,
+            theme-aurora-sway-a 5.5s ease-in-out infinite alternate;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        left: -700px;
+        background-size: 700px 100%;
+        background-image:
+            radial-gradient(ellipse 150px 20px at 170px 34%, rgba(150, 130, 230, 0.42), transparent 70%),
+            radial-gradient(ellipse 140px 24px at 380px 42%, rgba(226, 146, 136, 0.38), transparent 70%),
+            radial-gradient(ellipse 120px 18px at 570px 30%, rgba(150, 130, 230, 0.36), transparent 70%),
+            radial-gradient(ellipse 90px 30px at 260px 22%, rgba(246, 186, 120, 0.22), transparent 70%);
+        transform: skewX(10deg) scaleY(1.1);
+        animation:
+            theme-aurora-drift-b 23s linear infinite reverse,
+            theme-aurora-sway-b 7.5s ease-in-out infinite alternate;
+    }
+}
+
+@keyframes theme-aurora-drift-a {
+    0%   { translate: 0 0; }
+    50%  { translate: 280px -8px; }
+    100% { translate: 560px 0; }
+}
+
+@keyframes theme-aurora-drift-b {
+    0%   { translate: 0 0; }
+    50%  { translate: 350px 10px; }
+    100% { translate: 700px 0; }
+}
+
+@keyframes theme-aurora-sway-a {
+    0%   { transform: skewX(-12deg) scaleY(1); }
+    50%  { transform: skewX(6deg) scaleY(1.35); }
+    100% { transform: skewX(16deg) scaleY(0.9); }
+}
+
+@keyframes theme-aurora-sway-b {
+    0%   { transform: skewX(10deg) scaleY(1.1); }
+    50%  { transform: skewX(-8deg) scaleY(0.85); }
+    100% { transform: skewX(-16deg) scaleY(1.3); }
+}
+
+
+/* notes
+   Notes floating up from the playhead, swaying and fading out at the
+   top. Each layer holds one invisible note; the visible notes are its
+   text shadows. Every shadow is one note on its way up, placed so that
+   at the end of a cycle each note sits where the next one started.
+     ::before   white eighth notes
+     ::after    beamed notes in the accent colour */
+@container style(--theme-progress-effect: notes) {
+    [data-test="footer-player"] [data-test="progress-indicator"]::before,
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        bottom: 4px;
+        font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif;
+        line-height: 1;
+        color: transparent;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::before {
+        content: "\266A\FE0E";
+        right: 8px;
+        font-size: 15px;
+        text-shadow: 0.0px -0.0px 0 rgba(255, 255, 255, 0.0), -4.0px -30.0px 0 rgba(255, 255, 255, 0.8), -8.0px -60.0px 0 rgba(255, 255, 255, 0.8), -12.0px -90.0px 0 rgba(255, 255, 255, 0.267);
+        animation: theme-notes-a 1.6s linear infinite;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        content: "\266B\FE0E";
+        right: 20px;
+        font-size: 14px;
+        text-shadow: 5.8px -0.0px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent), -9.3px -40.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -11.5px -80.0px 0 color-mix(in srgb, var(--theme-accent) 52%, transparent);
+        animation: theme-notes-b 2.4s linear infinite;
+    }
+}
+
+@keyframes theme-notes-a {
+    0.0% { text-shadow: 0.0px -0.0px 0 rgba(255, 255, 255, 0.0), -4.0px -30.0px 0 rgba(255, 255, 255, 0.8), -8.0px -60.0px 0 rgba(255, 255, 255, 0.8), -12.0px -90.0px 0 rgba(255, 255, 255, 0.267); }
+    8.33% { text-shadow: 1.0px -2.5px 0 rgba(255, 255, 255, 0.167), -5.6px -32.5px 0 rgba(255, 255, 255, 0.8), -7.0px -62.5px 0 rgba(255, 255, 255, 0.8), -13.6px -92.5px 0 rgba(255, 255, 255, 0.211); }
+    16.67% { text-shadow: 1.8px -5.0px 0 rgba(255, 255, 255, 0.333), -7.2px -35.0px 0 rgba(255, 255, 255, 0.8), -6.2px -65.0px 0 rgba(255, 255, 255, 0.8), -15.2px -95.0px 0 rgba(255, 255, 255, 0.156); }
+    25.0% { text-shadow: 2.5px -7.5px 0 rgba(255, 255, 255, 0.5), -8.5px -37.5px 0 rgba(255, 255, 255, 0.8), -5.5px -67.5px 0 rgba(255, 255, 255, 0.767), -16.5px -97.5px 0 rgba(255, 255, 255, 0.1); }
+    33.33% { text-shadow: 3.0px -10.0px 0 rgba(255, 255, 255, 0.667), -9.7px -40.0px 0 rgba(255, 255, 255, 0.8), -5.0px -70.0px 0 rgba(255, 255, 255, 0.711), -17.7px -100.0px 0 rgba(255, 255, 255, 0.044); }
+    41.67% { text-shadow: 3.2px -12.5px 0 rgba(255, 255, 255, 0.8), -10.5px -42.5px 0 rgba(255, 255, 255, 0.8), -4.8px -72.5px 0 rgba(255, 255, 255, 0.656), -18.5px -102.5px 0 rgba(255, 255, 255, 0.0); }
+    50.0% { text-shadow: 3.0px -15.0px 0 rgba(255, 255, 255, 0.8), -11.0px -45.0px 0 rgba(255, 255, 255, 0.8), -5.0px -75.0px 0 rgba(255, 255, 255, 0.6), -19.0px -105.0px 0 rgba(255, 255, 255, 0.0); }
+    58.33% { text-shadow: 2.5px -17.5px 0 rgba(255, 255, 255, 0.8), -11.2px -47.5px 0 rgba(255, 255, 255, 0.8), -5.5px -77.5px 0 rgba(255, 255, 255, 0.544), -19.2px -107.5px 0 rgba(255, 255, 255, 0.0); }
+    66.67% { text-shadow: 1.7px -20.0px 0 rgba(255, 255, 255, 0.8), -11.0px -50.0px 0 rgba(255, 255, 255, 0.8), -6.3px -80.0px 0 rgba(255, 255, 255, 0.489), -19.0px -110.0px 0 rgba(255, 255, 255, 0.0); }
+    75.0% { text-shadow: 0.5px -22.5px 0 rgba(255, 255, 255, 0.8), -10.5px -52.5px 0 rgba(255, 255, 255, 0.8), -7.5px -82.5px 0 rgba(255, 255, 255, 0.433), -18.5px -112.5px 0 rgba(255, 255, 255, 0.0); }
+    83.33% { text-shadow: -0.8px -25.0px 0 rgba(255, 255, 255, 0.8), -9.8px -55.0px 0 rgba(255, 255, 255, 0.8), -8.8px -85.0px 0 rgba(255, 255, 255, 0.378), -17.8px -115.0px 0 rgba(255, 255, 255, 0.0); }
+    91.67% { text-shadow: -2.4px -27.5px 0 rgba(255, 255, 255, 0.8), -9.0px -57.5px 0 rgba(255, 255, 255, 0.8), -10.4px -87.5px 0 rgba(255, 255, 255, 0.322), -17.0px -117.5px 0 rgba(255, 255, 255, 0.0); }
+    100.0% { text-shadow: -4.0px -30.0px 0 rgba(255, 255, 255, 0.8), -8.0px -60.0px 0 rgba(255, 255, 255, 0.8), -12.0px -90.0px 0 rgba(255, 255, 255, 0.267), -16.0px -120.0px 0 rgba(255, 255, 255, 0.0); }
+}
+
+@keyframes theme-notes-b {
+    0.0% { text-shadow: 5.8px -0.0px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent), -9.3px -40.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -11.5px -80.0px 0 color-mix(in srgb, var(--theme-accent) 52%, transparent); }
+    8.33% { text-shadow: 5.6px -3.3px 0 color-mix(in srgb, var(--theme-accent) 24%, transparent), -8.0px -43.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -13.8px -83.3px 0 color-mix(in srgb, var(--theme-accent) 44%, transparent); }
+    16.67% { text-shadow: 4.6px -6.7px 0 color-mix(in srgb, var(--theme-accent) 47%, transparent), -6.4px -46.7px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -15.7px -86.7px 0 color-mix(in srgb, var(--theme-accent) 36%, transparent); }
+    25.0% { text-shadow: 3.0px -10.0px 0 color-mix(in srgb, var(--theme-accent) 71%, transparent), -4.7px -50.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -17.0px -90.0px 0 color-mix(in srgb, var(--theme-accent) 28%, transparent); }
+    33.33% { text-shadow: 0.9px -13.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -3.3px -53.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -17.6px -93.3px 0 color-mix(in srgb, var(--theme-accent) 20%, transparent); }
+    41.67% { text-shadow: -1.5px -16.7px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -2.2px -56.7px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -17.5px -96.7px 0 color-mix(in srgb, var(--theme-accent) 13%, transparent); }
+    50.0% { text-shadow: -4.0px -20.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -1.7px -60.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -16.8px -100.0px 0 color-mix(in srgb, var(--theme-accent) 5%, transparent); }
+    58.33% { text-shadow: -6.3px -23.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -1.9px -63.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -15.5px -103.3px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
+    66.67% { text-shadow: -8.2px -26.7px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -2.9px -66.7px 0 color-mix(in srgb, var(--theme-accent) 83%, transparent), -13.9px -106.7px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
+    75.0% { text-shadow: -9.5px -30.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -4.5px -70.0px 0 color-mix(in srgb, var(--theme-accent) 76%, transparent), -12.2px -110.0px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
+    83.33% { text-shadow: -10.1px -33.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -6.6px -73.3px 0 color-mix(in srgb, var(--theme-accent) 68%, transparent), -10.8px -113.3px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
+    91.67% { text-shadow: -10.0px -36.7px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -9.0px -76.7px 0 color-mix(in srgb, var(--theme-accent) 60%, transparent), -9.7px -116.7px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
+    100.0% { text-shadow: -9.3px -40.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -11.5px -80.0px 0 color-mix(in srgb, var(--theme-accent) 52%, transparent), -9.2px -120.0px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
+}
+
+
+/* bubbles
+   Bubbles rising through the played part. Two layers of repeating
+   bubbles (a ring with a small highlight) move up by exactly one tile
+   per cycle. Different tile sizes and speeds hide the repetition. */
+@container style(--theme-progress-effect: bubbles) {
+    [data-test="footer-player"] [data-test="progress-indicator"] {
+        overflow: hidden;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::before,
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        left: 0;
+        right: 0;
+        top: 0;
+        background-repeat: repeat;
+        will-change: transform;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::before {
+        height: calc(100% + 120px);
+        background-size: 160px 120px;
+        background-image:
+            radial-gradient(circle at 22px 26px, transparent 0 3.5px, rgba(255, 255, 255, 0.35) 3.7px 4.5px, transparent 5.0px),
+            radial-gradient(circle at 20.4px 24.4px, rgba(255, 255, 255, 0.63) 0 1.0px, transparent 1.5px),
+            radial-gradient(circle at 78px 88px, transparent 0 5.0px, rgba(255, 255, 255, 0.3) 5.2px 6.0px, transparent 6.5px),
+            radial-gradient(circle at 75.9px 85.9px, rgba(255, 255, 255, 0.54) 0 1.3px, transparent 1.8px),
+            radial-gradient(circle at 120px 40px, transparent 0 2.5px, rgba(255, 255, 255, 0.35) 2.7px 3.5px, transparent 4.0px),
+            radial-gradient(circle at 118.8px 38.8px, rgba(255, 255, 255, 0.63) 0 0.8px, transparent 1.3px),
+            radial-gradient(circle at 54px 62px, transparent 0 1.5px, rgba(255, 255, 255, 0.4) 1.7px 2.5px, transparent 3.0px),
+            radial-gradient(circle at 53.1px 61.1px, rgba(255, 255, 255, 0.72) 0 0.7px, transparent 1.2px),
+            radial-gradient(circle at 140px 104px, transparent 0 4.0px, rgba(255, 255, 255, 0.28) 4.2px 5.0px, transparent 5.5px),
+            radial-gradient(circle at 138.2px 102.2px, rgba(255, 255, 255, 0.50) 0 1.1px, transparent 1.6px);
+        animation: theme-bubbles-rise-a 6s linear infinite;
+    }
+
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        height: calc(100% + 150px);
+        background-size: 210px 150px;
+        background-image:
+            radial-gradient(circle at 30px 110px, transparent 0 1.2px, rgba(255, 255, 255, 0.3) 1.4px 2.2px, transparent 2.7px),
+            radial-gradient(circle at 29.2px 109.2px, rgba(255, 255, 255, 0.54) 0 0.7px, transparent 1.2px),
+            radial-gradient(circle at 96px 30px, transparent 0 1.8px, rgba(255, 255, 255, 0.28) 2.0px 2.8px, transparent 3.3px),
+            radial-gradient(circle at 95.0px 29.0px, rgba(255, 255, 255, 0.50) 0 0.7px, transparent 1.2px),
+            radial-gradient(circle at 150px 72px, transparent 0 0.8px, rgba(255, 255, 255, 0.32) 1.0px 1.8px, transparent 2.3px),
+            radial-gradient(circle at 149.4px 71.4px, rgba(255, 255, 255, 0.58) 0 0.7px, transparent 1.2px),
+            radial-gradient(circle at 190px 128px, transparent 0 1.5px, rgba(255, 255, 255, 0.25) 1.7px 2.5px, transparent 3.0px),
+            radial-gradient(circle at 189.1px 127.1px, rgba(255, 255, 255, 0.45) 0 0.7px, transparent 1.2px);
+        animation: theme-bubbles-rise-b 9s linear infinite;
+    }
+}
+
+@keyframes theme-bubbles-rise-a {
+    from { transform: translateY(0); }
+    to   { transform: translateY(-120px); }
+}
+
+@keyframes theme-bubbles-rise-b {
+    from { transform: translateY(0); }
+    to   { transform: translateY(-150px); }
+}
+
+
+/* With "reduce motion" turned on in Windows, the animations stand still
+   but stay visible */
+@media (prefers-reduced-motion: reduce) {
+    [data-test="footer-player"] [data-test="progress-indicator"]::before,
+    [data-test="footer-player"] [data-test="progress-indicator"]::after {
+        animation: none !important;
+    }
+}
+
+/* ---------- Seeking, time, cover, controls -------------------------------- */
+
+/* Other sliders, e.g. volume: no own track surface */
+[class*="_range_"] {
+    background: transparent;
+}
+
+/* Seek zone: the clickable strip along the top edge. It spans the full
+   width, so a click lands exactly where the fill shows the position. */
+[data-test="footer-player"] [data-test="interaction-layer"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--theme-seek-zone);
+    transform: none;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+/* Time tooltip while hovering the seek zone, just above the player */
+#progressBar > div > [class*="toolTip"] {
+    bottom: calc(100% + 12px) !important;
+    scale: 1;
+    overflow: visible;
+    background-color: var(--theme-black);
+    color: white;
+    border: var(--theme-border);
+    height: 25px;
+}
+
+/* Time as "0:16 / 3:06", centred below the play controls */
+[data-test="footer-player"] [data-test="current-time"],
+[data-test="footer-player"] [data-test="duration"] {
+    position: fixed;
+    bottom: 10px;
+    margin: 0;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+}
+
+[data-test="footer-player"] [data-test="current-time"] {
+    right: calc(50% + 5px);
+    left: auto;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+[data-test="footer-player"] [data-test="duration"] {
+    left: calc(50% - 3px);
+    right: auto;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+[data-test="footer-player"] [data-test="duration"]::before {
+    content: "/";
+    margin-right: 5px;
+    color: rgba(255, 255, 255, 0.25);
+}
+
+/* Cover and title on the left; the cover is shown a bit larger */
+[data-test="left-column-footer-player"],
+[class*="_leftColumn_"] {
+    overflow: visible !important;
+}
+
+[class*="imageryContainer"] {
+    height: 64px;
+    margin-top: 4px;
+    margin-left: 2px;
+    scale: 1.3;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+[class*="currentMediaItemDetails"] {
+    margin-left: 2px;
+}
+
+[class*="notFullscreenOverlay"],
+[class*="imageryContainer"] [class*="imageBorder"] {
+    display: none;
+}
+
+[class*="playbackControls"] {
+    margin-top: 2px;
+}
+
+button[aria-label="Play queue"] {
+    height: 32px;
+}
+
+/* Slider handles: a small diamond with a soft accent glow. "rotate" is
+   used instead of "transform", so TIDAL can keep positioning the handle
+   with its own transform. */
+[class*='_knob_'] {
+    width: 12px;
+    height: 12px;
+    margin-left: -7px;
+    margin-top: -3px;
+    rotate: 45deg;
+    background-color: var(--theme-text);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.6),
+        0 0 10px color-mix(in srgb, var(--theme-accent) 55%, transparent);
+    transition: scale 0.15s ease;
+}
+
+[class*='_knob_']:hover {
+    scale: 1.25;
+}
+
+/* Volume slider */
+[class*="nativeRangeContainer"] {
+    border: var(--theme-border);
+    box-shadow: none;
+    transform: translateY(-20px) scale(1.15);
+}
+
+[class*="nativeRangeContainer"]::after {
+    display: none;
+}
+
+input[class*="_nativeRange"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    transform: translateY(1px) rotate(45deg);
+    background-color: var(--theme-text);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.6),
+        0 0 10px color-mix(in srgb, var(--theme-accent) 55%, transparent);
+}
+
+
+/* ==========================================================================
+   16. FULLSCREEN VIEW
+   ========================================================================== */
+
+[class*="_nowPlayingContainer_"] {
+    background: var(--theme-black);
+}
+
+/* Background: a black night sky with a sunset on the horizon, amber at
+   the bottom, fading through rose and indigo into black. TIDAL sets the
+   cover colour inline on these elements, hence !important. */
+[class*="_fullscreen_"] [class*="_background_"],
+#nowPlaying [class*="_background_"] {
+    background:
+        radial-gradient(
+            75% 45% at 50% 100%,
+            color-mix(in srgb, var(--theme-sunrise-amber) 40%, transparent),
+            color-mix(in srgb, var(--theme-sunrise-rose) 12%, transparent) 55%,
+            transparent 75%
+        ),
+        linear-gradient(
+            to top,
+            color-mix(in srgb, var(--theme-sunrise-rose) 26%, transparent),
+            color-mix(in srgb, var(--theme-sunrise-indigo) 16%, transparent) 28%,
+            transparent 62%
+        ),
+        var(--theme-black) !important;
+}
+
+/* TIDAL's darkening layer over the background */
+[class*="_fullscreen_"] [class*="_veil_"],
+#nowPlaying [class*="_veil_"] {
+    display: none;
+}
+
+[data-test="now-playing"] {
+    box-shadow: none;
+    border: none;
+}
+
+[class*="_bottomGradient_"] {
+    display: none;
+}
+
+[class*="_nativeRangeContainer_"] {
+    transform: translateY(-20px) scale(1.2);
+    background-color: var(--theme-black);
+    border: var(--theme-border);
+    box-shadow: none;
+    overflow: hidden;
+}
+
+[class*="_nativeRange_"]::after {
+    display: none;
+}
+
+/* Close and fullscreen buttons */
+button[data-test="close-now-playing"],
+button[data-test="request-fullscreen"] {
+    background-color: transparent;
+    border: var(--theme-border);
+    transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+button[data-test="close-now-playing"]:hover,
+button[data-test="request-fullscreen"]:hover {
+    background-color: var(--theme-surface-hover);
+}
+
+[class*="artistBio"] {
+    padding-bottom: 80px;
+}
+
+figure[data-test="now-playing-image"] {
+    box-shadow: none;
+}
+
+
+/* ==========================================================================
+   17. MENUS AND TOOLTIPS
+   ========================================================================== */
+
+/* Context menu */
+[class*="contextMenu"][role="menu"] {
+    position: relative;
+    background-color: transparent;
+    border: var(--theme-border);
+    box-shadow: none;
+}
+
+[class*="contextMenu"][role="menu"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--theme-black);
+}
+
+[class*="contextMenu"][role="menu"] > * {
+    position: relative;
+}
+
+/* Submenus */
+[class*="_subMenu_"] {
+    position: relative;
+    background-color: transparent;
+    border: var(--theme-border);
+    box-shadow: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+[class*="_subMenu_"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--theme-black);
+    z-index: 0;
+}
+
+[class*="_subMenu_"] > * {
+    position: relative;
+    z-index: 1;
+}
+
+[role="menu"][class*="_submenu"] {
+    background-color: var(--theme-black);
+    border: var(--theme-border);
+    box-shadow: none;
+    z-index: 1;
+}
+
+[role="menu"][class*="_submenu"] > * {
+    position: relative;
+    z-index: 2;
+}
+
+/* Tooltips */
+[class*="_marketTooltipContainer_"] {
+    background-color: var(--theme-black);
+    border: var(--theme-border);
+    color: white;
+}
+
+[class*="_tooltipText_"] {
+    background-color: transparent;
+    border: var(--theme-border);
+    color: white;
+}
+
+[class*="_tooltipText_"]::after,
+[class*="_sidebarTooltip_"]::after {
+    display: none;
+}
