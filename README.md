@@ -12,6 +12,8 @@ Made for AMOLED screens: black stays black, colour only shows up where it matter
 - **Animated progress bar** with seven styles to choose from
 - **Search in the sidebar** with a spotlight that dims the rest of the app while results are open
 - **Docked player** across the full window width with a clear seek line
+- **Midnight-blue hover** in menus, lists and on cover buttons instead of TIDAL's grey
+- **Thin outlines** on context menus (sunset gradient) and on the Luna settings groups
 
 
 ## Installation
@@ -39,7 +41,7 @@ The default animation is `notes`. To use another one, install the **Themer** plu
 
 | Name | What you see |
 | --- | --- |
-| `notes` (default) | Music notes rise from the playhead, sway from side to side and fade out at the top. Two streams run at different speeds: eighth notes and beamed notes. |
+| `notes` (default) | Music notes rise from the playhead, sway from side to side and fade out at the top. Two streams run at different speeds: eighth notes and beamed notes. The notes take the colours of the sunset: amber at the bottom, rose in the middle, indigo at the top. |
 | `tide` | A wave rolls along the edge of the played part. A bright crest line runs in front, a fainter ripple moves the other way behind it. |
 | `stardust` | Small stars light up and fade out one by one behind the playhead. They are densest right at the playhead and thin out further back. |
 | `moon` | A little moon with craters and an eye sits at the playhead and keeps opening and closing its mouth. A row of dots glides into the mouth, one dot per bite. |

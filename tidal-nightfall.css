@@ -1,7 +1,7 @@
 /* ==========================================================================
    TIDAL Nightfall: black and white theme with sunset accents
    For TidaLuna, TIDAL desktop
-   Version 1.0.0
+   Version 1.1.0
 
    Contents
      1. Settings          progress animation
@@ -35,7 +35,7 @@
          stardust  small stars sparkle behind the playhead
          moon      a little moon at the playhead eats a row of dots
          aurora    soft northern lights fill the played part
-         notes     music notes float up from the playhead
+         notes     music notes in sunset colours float up from the playhead
          bubbles   bubbles rise through the played part
          none      plain fill without animation */
     --theme-progress-effect: notes;
@@ -69,8 +69,22 @@
     --theme-accent-soft: rgb(190, 190, 190);
 
     /* Outline of panels, menus and buttons. "none" hides all outlines.
-       Example for a thin warm line: 1px solid rgba(232, 156, 128, 0.28) */
+       Example for a thin warm line: 1px solid rgba(232, 156, 128, 0.28)
+       The Luna settings groups and the context menus have their own
+       outlines, set by the two variables below. */
     --theme-border: none;
+
+    /* Outline of the setting groups on the TidaLuna settings page */
+    --theme-luna-box-border: rgba(255, 255, 255, 0.22);
+
+    /* Outline of context menus and their submenus: the sunset gradient
+       of the fullscreen view, amber at the bottom, indigo at the top */
+    --theme-popup-border: linear-gradient(
+        to top,
+        var(--theme-sunrise-amber),
+        var(--theme-sunrise-rose),
+        var(--theme-sunrise-indigo)
+    );
 
     /* Filters for cards and playlist entries: dimmed while another one
        is hovered, full strength when hovered or selected */
@@ -86,6 +100,7 @@
     --theme-content-gap: 24px;                          /* gap between sidebar / window edge and page content */
     --theme-sidebar-top: calc(var(--os-title-bar-height, 30px) + 2vh);  /* top edge of the sidebar */
     --theme-sidebar-search-space: 56px;                 /* room at the top of the sidebar for the search field */
+    --theme-search-open-width: min(640px, 70vw);        /* width of the search field and the results panel while searching */
 
     /* TIDAL colour tokens. TIDAL's accent family (turquoise) and its
        "special" family (peach) are set to white and grey. */
@@ -242,9 +257,15 @@ body {
     background-color: var(--theme-surface-hover) !important;
 }
 
-/* "Next up" box in the player */
+/* "Next up" box in the player (plugin up-next): no surface of its own, the
+   black player shows through. !important because the plugin sets its
+   own background. The box starts 64px further right, clear of the heart
+   and the three-dot menu, and ends before the playback buttons (they
+   start at 50vw - 107px, minus a 16px gap). */
 [data-test="footer-player"] .upnext-container {
-    background-color: var(--theme-surface) !important;
+    background-color: transparent !important;
+    margin-left: 64px;
+    max-width: max(160px, calc(50vw - 301px));
 }
 
 
@@ -359,6 +380,16 @@ div[class*="_bar_"] button[class*="_button_"]:hover svg {
     padding-bottom: var(--miniPlayerHeight);
 }
 
+/* Local Files page (plugin). It does not sit in .mainContent, so it gets
+   the same offset and width here. The negative top margin pulls it up
+   into the 112px spacer above it, so the header starts about 44px below
+   the top bar. */
+.lf-page {
+    margin-top: -100px;
+    margin-left: calc(var(--sidebarWidth) + var(--theme-content-gap) - 50px);
+    width: calc(100vw - var(--sidebarWidth) - 2 * var(--theme-content-gap));
+}
+
 [data-test="home-page-feed"] {
     margin-top: 20px;
 }
@@ -367,11 +398,25 @@ div[class*="_bar_"] button[class*="_button_"]:hover svg {
     width: 100vw;
 }
 
-/* TidaLuna settings page */
+/* TidaLuna settings page. It is moved 7vw to the left and sits 10px below
+   the 112px spacer that TIDAL puts above the page. */
 [class*="MuiContainer"] {
     transform: translateX(-7vw);
-    margin-top: 90px;
+    margin-top: 10px;
     padding-bottom: 40px;
+}
+
+/* Setting groups on the TidaLuna settings page get a thin white line.
+   The row that holds the text fields (Plugin Store: "Install from URL"
+   and "Search plugins...") is left out, its fields get their own line
+   below. This is the only place with a visible outline. */
+[class*="MuiContainer"] > .MuiStack-root > .MuiStack-root:not(:has(> .MuiTextField-root)) {
+    border: 1px solid var(--theme-luna-box-border);
+}
+
+/* Outline of each text field */
+[class*="MuiContainer"] .MuiTextField-root .MuiOutlinedInput-notchedOutline {
+    border: 1px solid var(--theme-luna-box-border);
 }
 
 [class*="_sectionHeader"] {
@@ -445,6 +490,14 @@ aside#sidebar > div[class*="_header_"] {
 [aria-label="Playlists"] [class*="_selected_"] {
     filter: var(--theme-undimmed) !important;
     transform: scale(1.03);
+}
+
+/* Name of the playlist that is playing right now. TIDAL colours it green
+   through a quality class; here it is the amber of the sunset. !important
+   because TIDAL sets the colour and the text fill itself. */
+[data-test="main-layout-sidebar-wrapper"] [class*="_title_"][class*="_quality"] {
+    -webkit-text-fill-color: var(--theme-sunrise-amber) !important;
+    color: var(--theme-sunrise-amber) !important;
 }
 
 [data-test="user-profile-avatar"] {
@@ -565,6 +618,12 @@ aside#sidebar > div[class*="_header_"] {
     margin: 0;
 }
 
+/* While the results panel is open, the field is as wide as the panel so
+   long titles are not cut off. It grows to the right over the content. */
+body:has([data-test="query-suggestions"]) #mainHeader [data-test="search-popover-container"] {
+    width: var(--theme-search-open-width);
+}
+
 [data-type="search-field"] {
     width: 100%;
     background-color: var(--theme-surface) !important;
@@ -577,7 +636,7 @@ aside#sidebar > div[class*="_header_"] {
 div[data-test="query-suggestions"] {
     margin-left: 0;
     margin-top: 10px;
-    width: min(640px, 70vw);
+    width: var(--theme-search-open-width);
     height: calc(80vh - var(--miniPlayerHeight));
     background-color: var(--theme-surface);
     border: var(--theme-border);
@@ -615,10 +674,22 @@ body:has([data-test="query-suggestions"]) #mainHeader::after {
    10. PAGE HEADERS
    ========================================================================== */
 
-/* Compact header that appears when scrolling a page */
+/* Compact header that appears when scrolling a page. It stays fixed over
+   the content, so it needs a solid black surface. !important because
+   TIDAL paints the cover colour here. */
 [class^="_smallHeader_"] {
-    background: none !important;
+    background: var(--theme-black) !important;
     margin-top: -40px;
+}
+
+/* Content of the compact header: cover, title and artist on the left,
+   buttons (play, shuffle, share, ...) on the right. The top bar covers
+   the first 16px of the cover, so everything sits 18px lower. translate
+   leaves the layout and TIDAL's own transform alone. */
+[class*="_smallHeader_"] [class*="_coverArt_"],
+[class*="_smallHeader_"] [class*="_textContainer_"],
+[data-test="header-controls-scrolled"] {
+    translate: 0 18px;
 }
 
 div[class^="_smallHeader_"]::before {
@@ -685,6 +756,55 @@ div[data-test-module-type="CONTRIBUTOR_HEADER"] header[class*="container"] {
 
 div[class^="_overlay_"] {
     background: none;
+}
+
+/* Buttons on the cover (play, heart): both are a white square with a dark
+   symbol. The play button gets its white from an inner element, the heart
+   button has none, so it is set here. The second selector is the heart on
+   the cards of the home page (personal radio). */
+[class*="_fxHoverControls_"] [data-test="favorite-button"],
+[class*="_overlay_"] [class*="_favoriteButtonContainer_"] button {
+    background-color: var(--theme-accent) !important;
+    color: var(--theme-black) !important;
+}
+
+/* Three-dot button on the cover, while the mouse is on it: deep night
+   blue instead of TIDAL's grey. Without the mouse it has no background.
+   !important because TIDAL sets the colour on the button. */
+[class*="_fxHoverControls_"] [data-test="context-menu-button"]:hover {
+    background-color: var(--theme-surface-selected) !important;
+}
+
+/* Row in the Feed list of releases under the mouse: deep night blue
+   instead of TIDAL's grey. !important because TIDAL sets the colour on
+   the row. */
+[data-test="feed-item"]:hover {
+    background-color: var(--theme-surface-selected) !important;
+}
+
+/* Track row under the mouse (playlist pages): all its columns (title,
+   artist, album, time, ...) are deep night blue instead of TIDAL's grey.
+   TIDAL colours the columns, the row itself has no background.
+   !important because TIDAL sets the colour on the columns. */
+[data-test="tracklist-row"]:hover > [class*="Column_"] {
+    background-color: var(--theme-surface-selected) !important;
+}
+
+/* Heart of an album in the collection: filled with the sunset gradient of
+   the fullscreen view (amber at the bottom, rose, indigo at the top). The
+   symbol is hidden and the gradient is cut to a heart shape with a mask.
+   The shape is drawn here, so it differs slightly from TIDAL's heart. */
+[class*="_fxHoverControls_"] [data-test="favorite-button"]:has(use[href$="heart-filled"]) svg,
+[class*="_overlay_"] [class*="_favoriteButtonContainer_"] button:has(use[href$="heart-filled"]) svg {
+    fill: transparent !important;
+    background: linear-gradient(
+        to top,
+        var(--theme-sunrise-amber),
+        var(--theme-sunrise-rose) 55%,
+        var(--theme-sunrise-indigo)
+    );
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 
@@ -1269,8 +1389,11 @@ div[class^="_overlay_"] {
    top. Each layer holds one invisible note; the visible notes are its
    text shadows. Every shadow is one note on its way up, placed so that
    at the end of a cycle each note sits where the next one started.
-     ::before   white eighth notes
-     ::after    beamed notes in the accent colour */
+   A note's colour follows its height, like the sunset: amber at the
+   bottom, rose in the middle, indigo at the top. The shadow colours are
+   generated, they are not edited by hand.
+     ::before   eighth notes
+     ::after    beamed notes */
 @container style(--theme-progress-effect: notes) {
     [data-test="footer-player"] [data-test="progress-indicator"]::before,
     [data-test="footer-player"] [data-test="progress-indicator"]::after {
@@ -1284,7 +1407,7 @@ div[class^="_overlay_"] {
         content: "\266A\FE0E";
         right: 8px;
         font-size: 15px;
-        text-shadow: 0.0px -0.0px 0 rgba(255, 255, 255, 0.0), -4.0px -30.0px 0 rgba(255, 255, 255, 0.8), -8.0px -60.0px 0 rgba(255, 255, 255, 0.8), -12.0px -90.0px 0 rgba(255, 255, 255, 0.267);
+        text-shadow: 0.0px -0.0px 0 transparent, -4.0px -30.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 50%, var(--theme-sunrise-rose)) 80%, transparent), -8.0px -60.0px 0 color-mix(in srgb, var(--theme-sunrise-rose) 80%, transparent), -12.0px -90.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 50%, var(--theme-sunrise-indigo)) 27%, transparent);
         animation: theme-notes-a 1.6s linear infinite;
     }
 
@@ -1292,41 +1415,41 @@ div[class^="_overlay_"] {
         content: "\266B\FE0E";
         right: 20px;
         font-size: 14px;
-        text-shadow: 5.8px -0.0px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent), -9.3px -40.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -11.5px -80.0px 0 color-mix(in srgb, var(--theme-accent) 52%, transparent);
+        text-shadow: 5.8px -0.0px 0 transparent, -9.3px -40.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 33%, var(--theme-sunrise-rose)) 85%, transparent), -11.5px -80.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 67%, var(--theme-sunrise-indigo)) 52%, transparent);
         animation: theme-notes-b 2.4s linear infinite;
     }
 }
 
 @keyframes theme-notes-a {
-    0.0% { text-shadow: 0.0px -0.0px 0 rgba(255, 255, 255, 0.0), -4.0px -30.0px 0 rgba(255, 255, 255, 0.8), -8.0px -60.0px 0 rgba(255, 255, 255, 0.8), -12.0px -90.0px 0 rgba(255, 255, 255, 0.267); }
-    8.33% { text-shadow: 1.0px -2.5px 0 rgba(255, 255, 255, 0.167), -5.6px -32.5px 0 rgba(255, 255, 255, 0.8), -7.0px -62.5px 0 rgba(255, 255, 255, 0.8), -13.6px -92.5px 0 rgba(255, 255, 255, 0.211); }
-    16.67% { text-shadow: 1.8px -5.0px 0 rgba(255, 255, 255, 0.333), -7.2px -35.0px 0 rgba(255, 255, 255, 0.8), -6.2px -65.0px 0 rgba(255, 255, 255, 0.8), -15.2px -95.0px 0 rgba(255, 255, 255, 0.156); }
-    25.0% { text-shadow: 2.5px -7.5px 0 rgba(255, 255, 255, 0.5), -8.5px -37.5px 0 rgba(255, 255, 255, 0.8), -5.5px -67.5px 0 rgba(255, 255, 255, 0.767), -16.5px -97.5px 0 rgba(255, 255, 255, 0.1); }
-    33.33% { text-shadow: 3.0px -10.0px 0 rgba(255, 255, 255, 0.667), -9.7px -40.0px 0 rgba(255, 255, 255, 0.8), -5.0px -70.0px 0 rgba(255, 255, 255, 0.711), -17.7px -100.0px 0 rgba(255, 255, 255, 0.044); }
-    41.67% { text-shadow: 3.2px -12.5px 0 rgba(255, 255, 255, 0.8), -10.5px -42.5px 0 rgba(255, 255, 255, 0.8), -4.8px -72.5px 0 rgba(255, 255, 255, 0.656), -18.5px -102.5px 0 rgba(255, 255, 255, 0.0); }
-    50.0% { text-shadow: 3.0px -15.0px 0 rgba(255, 255, 255, 0.8), -11.0px -45.0px 0 rgba(255, 255, 255, 0.8), -5.0px -75.0px 0 rgba(255, 255, 255, 0.6), -19.0px -105.0px 0 rgba(255, 255, 255, 0.0); }
-    58.33% { text-shadow: 2.5px -17.5px 0 rgba(255, 255, 255, 0.8), -11.2px -47.5px 0 rgba(255, 255, 255, 0.8), -5.5px -77.5px 0 rgba(255, 255, 255, 0.544), -19.2px -107.5px 0 rgba(255, 255, 255, 0.0); }
-    66.67% { text-shadow: 1.7px -20.0px 0 rgba(255, 255, 255, 0.8), -11.0px -50.0px 0 rgba(255, 255, 255, 0.8), -6.3px -80.0px 0 rgba(255, 255, 255, 0.489), -19.0px -110.0px 0 rgba(255, 255, 255, 0.0); }
-    75.0% { text-shadow: 0.5px -22.5px 0 rgba(255, 255, 255, 0.8), -10.5px -52.5px 0 rgba(255, 255, 255, 0.8), -7.5px -82.5px 0 rgba(255, 255, 255, 0.433), -18.5px -112.5px 0 rgba(255, 255, 255, 0.0); }
-    83.33% { text-shadow: -0.8px -25.0px 0 rgba(255, 255, 255, 0.8), -9.8px -55.0px 0 rgba(255, 255, 255, 0.8), -8.8px -85.0px 0 rgba(255, 255, 255, 0.378), -17.8px -115.0px 0 rgba(255, 255, 255, 0.0); }
-    91.67% { text-shadow: -2.4px -27.5px 0 rgba(255, 255, 255, 0.8), -9.0px -57.5px 0 rgba(255, 255, 255, 0.8), -10.4px -87.5px 0 rgba(255, 255, 255, 0.322), -17.0px -117.5px 0 rgba(255, 255, 255, 0.0); }
-    100.0% { text-shadow: -4.0px -30.0px 0 rgba(255, 255, 255, 0.8), -8.0px -60.0px 0 rgba(255, 255, 255, 0.8), -12.0px -90.0px 0 rgba(255, 255, 255, 0.267), -16.0px -120.0px 0 rgba(255, 255, 255, 0.0); }
+    0.0% { text-shadow: 0.0px -0.0px 0 transparent, -4.0px -30.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 50%, var(--theme-sunrise-rose)) 80%, transparent), -8.0px -60.0px 0 color-mix(in srgb, var(--theme-sunrise-rose) 80%, transparent), -12.0px -90.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 50%, var(--theme-sunrise-indigo)) 27%, transparent); }
+    8.33% { text-shadow: 1.0px -2.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 96%, var(--theme-sunrise-rose)) 17%, transparent), -5.6px -32.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 46%, var(--theme-sunrise-rose)) 80%, transparent), -7.0px -62.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 96%, var(--theme-sunrise-indigo)) 80%, transparent), -13.6px -92.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 46%, var(--theme-sunrise-indigo)) 21%, transparent); }
+    16.67% { text-shadow: 1.8px -5.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 92%, var(--theme-sunrise-rose)) 33%, transparent), -7.2px -35.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 42%, var(--theme-sunrise-rose)) 80%, transparent), -6.2px -65.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 92%, var(--theme-sunrise-indigo)) 80%, transparent), -15.2px -95.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 42%, var(--theme-sunrise-indigo)) 16%, transparent); }
+    25.0% { text-shadow: 2.5px -7.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 88%, var(--theme-sunrise-rose)) 50%, transparent), -8.5px -37.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 38%, var(--theme-sunrise-rose)) 80%, transparent), -5.5px -67.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 88%, var(--theme-sunrise-indigo)) 77%, transparent), -16.5px -97.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 38%, var(--theme-sunrise-indigo)) 10%, transparent); }
+    33.33% { text-shadow: 3.0px -10.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 83%, var(--theme-sunrise-rose)) 67%, transparent), -9.7px -40.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 33%, var(--theme-sunrise-rose)) 80%, transparent), -5.0px -70.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 83%, var(--theme-sunrise-indigo)) 71%, transparent), -17.7px -100.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 33%, var(--theme-sunrise-indigo)) 4%, transparent); }
+    41.67% { text-shadow: 3.2px -12.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 79%, var(--theme-sunrise-rose)) 80%, transparent), -10.5px -42.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 29%, var(--theme-sunrise-rose)) 80%, transparent), -4.8px -72.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 79%, var(--theme-sunrise-indigo)) 66%, transparent), -18.5px -102.5px 0 transparent; }
+    50.0% { text-shadow: 3.0px -15.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 75%, var(--theme-sunrise-rose)) 80%, transparent), -11.0px -45.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 25%, var(--theme-sunrise-rose)) 80%, transparent), -5.0px -75.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 75%, var(--theme-sunrise-indigo)) 60%, transparent), -19.0px -105.0px 0 transparent; }
+    58.33% { text-shadow: 2.5px -17.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 71%, var(--theme-sunrise-rose)) 80%, transparent), -11.2px -47.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 21%, var(--theme-sunrise-rose)) 80%, transparent), -5.5px -77.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 71%, var(--theme-sunrise-indigo)) 54%, transparent), -19.2px -107.5px 0 transparent; }
+    66.67% { text-shadow: 1.7px -20.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 67%, var(--theme-sunrise-rose)) 80%, transparent), -11.0px -50.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 17%, var(--theme-sunrise-rose)) 80%, transparent), -6.3px -80.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 67%, var(--theme-sunrise-indigo)) 49%, transparent), -19.0px -110.0px 0 transparent; }
+    75.0% { text-shadow: 0.5px -22.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 62%, var(--theme-sunrise-rose)) 80%, transparent), -10.5px -52.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 12%, var(--theme-sunrise-rose)) 80%, transparent), -7.5px -82.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 62%, var(--theme-sunrise-indigo)) 43%, transparent), -18.5px -112.5px 0 transparent; }
+    83.33% { text-shadow: -0.8px -25.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 58%, var(--theme-sunrise-rose)) 80%, transparent), -9.8px -55.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 8%, var(--theme-sunrise-rose)) 80%, transparent), -8.8px -85.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 58%, var(--theme-sunrise-indigo)) 38%, transparent), -17.8px -115.0px 0 transparent; }
+    91.67% { text-shadow: -2.4px -27.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 54%, var(--theme-sunrise-rose)) 80%, transparent), -9.0px -57.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 4%, var(--theme-sunrise-rose)) 80%, transparent), -10.4px -87.5px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 54%, var(--theme-sunrise-indigo)) 32%, transparent), -17.0px -117.5px 0 transparent; }
+    100.0% { text-shadow: -4.0px -30.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 50%, var(--theme-sunrise-rose)) 80%, transparent), -8.0px -60.0px 0 color-mix(in srgb, var(--theme-sunrise-rose) 80%, transparent), -12.0px -90.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 50%, var(--theme-sunrise-indigo)) 27%, transparent), -16.0px -120.0px 0 transparent; }
 }
 
 @keyframes theme-notes-b {
-    0.0% { text-shadow: 5.8px -0.0px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent), -9.3px -40.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -11.5px -80.0px 0 color-mix(in srgb, var(--theme-accent) 52%, transparent); }
-    8.33% { text-shadow: 5.6px -3.3px 0 color-mix(in srgb, var(--theme-accent) 24%, transparent), -8.0px -43.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -13.8px -83.3px 0 color-mix(in srgb, var(--theme-accent) 44%, transparent); }
-    16.67% { text-shadow: 4.6px -6.7px 0 color-mix(in srgb, var(--theme-accent) 47%, transparent), -6.4px -46.7px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -15.7px -86.7px 0 color-mix(in srgb, var(--theme-accent) 36%, transparent); }
-    25.0% { text-shadow: 3.0px -10.0px 0 color-mix(in srgb, var(--theme-accent) 71%, transparent), -4.7px -50.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -17.0px -90.0px 0 color-mix(in srgb, var(--theme-accent) 28%, transparent); }
-    33.33% { text-shadow: 0.9px -13.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -3.3px -53.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -17.6px -93.3px 0 color-mix(in srgb, var(--theme-accent) 20%, transparent); }
-    41.67% { text-shadow: -1.5px -16.7px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -2.2px -56.7px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -17.5px -96.7px 0 color-mix(in srgb, var(--theme-accent) 13%, transparent); }
-    50.0% { text-shadow: -4.0px -20.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -1.7px -60.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -16.8px -100.0px 0 color-mix(in srgb, var(--theme-accent) 5%, transparent); }
-    58.33% { text-shadow: -6.3px -23.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -1.9px -63.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -15.5px -103.3px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
-    66.67% { text-shadow: -8.2px -26.7px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -2.9px -66.7px 0 color-mix(in srgb, var(--theme-accent) 83%, transparent), -13.9px -106.7px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
-    75.0% { text-shadow: -9.5px -30.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -4.5px -70.0px 0 color-mix(in srgb, var(--theme-accent) 76%, transparent), -12.2px -110.0px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
-    83.33% { text-shadow: -10.1px -33.3px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -6.6px -73.3px 0 color-mix(in srgb, var(--theme-accent) 68%, transparent), -10.8px -113.3px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
-    91.67% { text-shadow: -10.0px -36.7px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -9.0px -76.7px 0 color-mix(in srgb, var(--theme-accent) 60%, transparent), -9.7px -116.7px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
-    100.0% { text-shadow: -9.3px -40.0px 0 color-mix(in srgb, var(--theme-accent) 85%, transparent), -11.5px -80.0px 0 color-mix(in srgb, var(--theme-accent) 52%, transparent), -9.2px -120.0px 0 color-mix(in srgb, var(--theme-accent) 0%, transparent); }
+    0.0% { text-shadow: 5.8px -0.0px 0 transparent, -9.3px -40.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 33%, var(--theme-sunrise-rose)) 85%, transparent), -11.5px -80.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 67%, var(--theme-sunrise-indigo)) 52%, transparent); }
+    8.33% { text-shadow: 5.6px -3.3px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 94%, var(--theme-sunrise-rose)) 24%, transparent), -8.0px -43.3px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 28%, var(--theme-sunrise-rose)) 85%, transparent), -13.8px -83.3px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 61%, var(--theme-sunrise-indigo)) 44%, transparent); }
+    16.67% { text-shadow: 4.6px -6.7px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 89%, var(--theme-sunrise-rose)) 47%, transparent), -6.4px -46.7px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 22%, var(--theme-sunrise-rose)) 85%, transparent), -15.7px -86.7px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 55%, var(--theme-sunrise-indigo)) 36%, transparent); }
+    25.0% { text-shadow: 3.0px -10.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 83%, var(--theme-sunrise-rose)) 71%, transparent), -4.7px -50.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 17%, var(--theme-sunrise-rose)) 85%, transparent), -17.0px -90.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 50%, var(--theme-sunrise-indigo)) 28%, transparent); }
+    33.33% { text-shadow: 0.9px -13.3px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 78%, var(--theme-sunrise-rose)) 85%, transparent), -3.3px -53.3px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 11%, var(--theme-sunrise-rose)) 85%, transparent), -17.6px -93.3px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 45%, var(--theme-sunrise-indigo)) 20%, transparent); }
+    41.67% { text-shadow: -1.5px -16.7px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 72%, var(--theme-sunrise-rose)) 85%, transparent), -2.2px -56.7px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 5%, var(--theme-sunrise-rose)) 85%, transparent), -17.5px -96.7px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 39%, var(--theme-sunrise-indigo)) 13%, transparent); }
+    50.0% { text-shadow: -4.0px -20.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 67%, var(--theme-sunrise-rose)) 85%, transparent), -1.7px -60.0px 0 color-mix(in srgb, var(--theme-sunrise-rose) 85%, transparent), -16.8px -100.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 33%, var(--theme-sunrise-indigo)) 5%, transparent); }
+    58.33% { text-shadow: -6.3px -23.3px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 61%, var(--theme-sunrise-rose)) 85%, transparent), -1.9px -63.3px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 94%, var(--theme-sunrise-indigo)) 85%, transparent), -15.5px -103.3px 0 transparent; }
+    66.67% { text-shadow: -8.2px -26.7px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 55%, var(--theme-sunrise-rose)) 85%, transparent), -2.9px -66.7px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 89%, var(--theme-sunrise-indigo)) 83%, transparent), -13.9px -106.7px 0 transparent; }
+    75.0% { text-shadow: -9.5px -30.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 50%, var(--theme-sunrise-rose)) 85%, transparent), -4.5px -70.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 83%, var(--theme-sunrise-indigo)) 76%, transparent), -12.2px -110.0px 0 transparent; }
+    83.33% { text-shadow: -10.1px -33.3px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 45%, var(--theme-sunrise-rose)) 85%, transparent), -6.6px -73.3px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 78%, var(--theme-sunrise-indigo)) 68%, transparent), -10.8px -113.3px 0 transparent; }
+    91.67% { text-shadow: -10.0px -36.7px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 39%, var(--theme-sunrise-rose)) 85%, transparent), -9.0px -76.7px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 72%, var(--theme-sunrise-indigo)) 60%, transparent), -9.7px -116.7px 0 transparent; }
+    100.0% { text-shadow: -9.3px -40.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-amber) 33%, var(--theme-sunrise-rose)) 85%, transparent), -11.5px -80.0px 0 color-mix(in srgb, color-mix(in srgb, var(--theme-sunrise-rose) 67%, var(--theme-sunrise-indigo)) 52%, transparent), -9.2px -120.0px 0 transparent; }
 }
 
 
@@ -1620,11 +1743,15 @@ figure[data-test="now-playing-image"] {
    17. MENUS AND TOOLTIPS
    ========================================================================== */
 
-/* Context menu */
+/* Context menu and its submenus (for example the playlist list of
+   "Add to playlist") have a thin line in the sunset gradient so they
+   stand out from the black page. The line is a border-image, which only
+   works with square corners. */
 [class*="contextMenu"][role="menu"] {
     position: relative;
     background-color: transparent;
-    border: var(--theme-border);
+    border: 1px solid transparent;
+    border-image: var(--theme-popup-border) 1;
     box-shadow: none;
 }
 
@@ -1639,14 +1766,69 @@ figure[data-test="now-playing-image"] {
     position: relative;
 }
 
-/* Submenus */
+/* Entry of a context menu under the mouse, or the selected entry (TIDAL
+   marks it with _actionItemHover_): deep night blue instead of TIDAL's
+   grey. The entry is 8px narrower than its row, so two shadows without
+   blur widen the colour by 4px on each side, up to the menu's lines. */
+[class*="_actionItem_"]:hover,
+[class*="_actionItemHover_"] {
+    background-color: var(--theme-surface-selected) !important;
+    box-shadow:
+        -4px 0 0 var(--theme-surface-selected),
+        4px 0 0 var(--theme-surface-selected);
+}
+
+/* The first and the last entry also fill the 4px gap between the entry and
+   the menu's line at the top and at the bottom. */
+li:first-child > :is([class*="_actionItem_"]:hover, [class*="_actionItemHover_"]) {
+    box-shadow:
+        -4px 0 0 var(--theme-surface-selected),
+        4px 0 0 var(--theme-surface-selected),
+        0 -4px 0 var(--theme-surface-selected),
+        -4px -4px 0 var(--theme-surface-selected),
+        4px -4px 0 var(--theme-surface-selected);
+}
+
+li:last-child > :is([class*="_actionItem_"]:hover, [class*="_actionItemHover_"]) {
+    box-shadow:
+        -4px 0 0 var(--theme-surface-selected),
+        4px 0 0 var(--theme-surface-selected),
+        0 4px 0 var(--theme-surface-selected),
+        -4px 4px 0 var(--theme-surface-selected),
+        4px 4px 0 var(--theme-surface-selected);
+}
+
+li:only-child > :is([class*="_actionItem_"]:hover, [class*="_actionItemHover_"]) {
+    box-shadow:
+        -4px 0 0 var(--theme-surface-selected),
+        4px 0 0 var(--theme-surface-selected),
+        0 -4px 0 var(--theme-surface-selected),
+        -4px -4px 0 var(--theme-surface-selected),
+        4px -4px 0 var(--theme-surface-selected),
+        0 4px 0 var(--theme-surface-selected),
+        -4px 4px 0 var(--theme-surface-selected),
+        4px 4px 0 var(--theme-surface-selected);
+}
+
+/* Submenus. They overlap the context menu by 3px, which puts their edge
+   line 2px beside its line. translate moves them 2px toward it, so both
+   lines lie on the same pixels. -2px is for a submenu that opens to the
+   left of the context menu. A submenu that opens to the right sits in a
+   container that TIDAL moves with an inline translate(<positive>px), it
+   moves the other way. */
 [class*="_subMenu_"] {
+    translate: -2px 0;
     position: relative;
     background-color: transparent;
-    border: var(--theme-border);
+    border: 1px solid transparent;
+    border-image: var(--theme-popup-border) 1;
     box-shadow: none;
     overflow: hidden;
     z-index: 0;
+}
+
+[class*="_subMenuContainer_"][style*="translate("]:not([style*="translate(-"]) [class*="_subMenu_"] {
+    translate: 2px 0;
 }
 
 [class*="_subMenu_"]::before {
@@ -1664,7 +1846,8 @@ figure[data-test="now-playing-image"] {
 
 [role="menu"][class*="_submenu"] {
     background-color: var(--theme-black);
-    border: var(--theme-border);
+    border: 1px solid transparent;
+    border-image: var(--theme-popup-border) 1;
     box-shadow: none;
     z-index: 1;
 }
