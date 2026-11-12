@@ -3,7 +3,6 @@
 A minimalist, true-black theme for TIDAL via TidaLuna, featuring sharp edges, sunset accents and customizable player animations.
 Made for AMOLED screens: black stays black, colour only shows up where it matters.
 
-
 ## Features
 
 - **True black** surfaces everywhere, no frosted glass, no cover-coloured page backgrounds
@@ -14,6 +13,12 @@ Made for AMOLED screens: black stays black, colour only shows up where it matter
 - **Docked player** across the full window width with a clear seek line
 - **Midnight-blue hover** in menus, lists and on cover buttons instead of TIDAL's grey
 - **Thin outlines** on context menus (sunset gradient) and on the Luna settings groups
+
+## Screenshots
+
+<img width="1653" height="952" alt="image" src="https://github.com/user-attachments/assets/94905cac-939f-4d58-8f65-1b01541a42ea" />
+<img width="1662" height="946" alt="image" src="https://github.com/user-attachments/assets/8ad90da9-2738-416b-90a7-5131203bf44f" />
+<img width="1665" height="945" alt="image" src="https://github.com/user-attachments/assets/2f9f4fb8-fb4d-46e8-9e80-b09bfefeba90" />
 
 
 ## Installation
@@ -29,7 +34,7 @@ Requires [TidaLuna](https://github.com/Inrixia/TidaLuna) and the TIDAL desktop a
 
 This link always loads the latest version. To stay on a fixed version, replace `main` with a version tag, for example `v1.0.0`.
 
-## Choosing an animation
+## Choosing/Changing an animation
 
 The default animation is `notes`. To use another one, install the **Themer** plugin by Nick Oates from the Plugin Store in Luna settings. Open its CSS editor and add this line, replacing `moon` with the name you want:
 
