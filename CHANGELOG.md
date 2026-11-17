@@ -6,6 +6,15 @@ and the theme uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-17
+
+### Fixed
+
+- Text, caret, placeholder and icon of a focused search field are readable again; the search field in the "Add to playlist" dialog showed black text on the dark field
+- The context menu of a search result opens above the search results and can be used; it also moves clear of the results panel
+- Title, artist and album in the player are no longer squeezed to a few pixels by the "Next up" box when the window is small
+- Turned-off switches on the Luna settings pages have a visible track outline instead of an invisible black track
+
 ## [1.1.0] - 2026-11-11
 
 ### Added
@@ -41,6 +50,7 @@ and the theme uses [Semantic Versioning](https://semver.org/).
 - Player docked to the bottom across the full window width
 - Black backgrounds on album, playlist, track and Luna settings pages
 
-[Unreleased]: https://github.com/mathisschaefer2000/Tidal-Nightfall/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/mathisschaefer2000/Tidal-Nightfall/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/mathisschaefer2000/Tidal-Nightfall/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/mathisschaefer2000/Tidal-Nightfall/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/mathisschaefer2000/Tidal-Nightfall/releases/tag/v1.0.0

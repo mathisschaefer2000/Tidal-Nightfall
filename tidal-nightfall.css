@@ -1,7 +1,7 @@
 /* ==========================================================================
    TIDAL Nightfall: black and white theme with sunset accents
    For TidaLuna, TIDAL desktop
-   Version 1.1.0
+   Version 1.1.1
 
    Contents
      1. Settings          progress animation
@@ -259,13 +259,18 @@ body {
 
 /* "Next up" box in the player (plugin up-next): no surface of its own, the
    black player shows through. !important because the plugin sets its
-   own background. The box starts 64px further right, clear of the heart
-   and the three-dot menu, and ends before the playback buttons (they
-   start at 50vw - 107px, minus a 16px gap). */
+   own background. The box sits in the flex row of the title column and
+   does not shrink, so it squeezes the title. A negative right margin as
+   wide as the box removes it from the row's width: the title keeps the
+   whole column and the box reaches out to the right, into the free space
+   in front of the playback buttons (they start at 50vw - 107px, minus a
+   16px gap). The box is assumed to start about 150px from the left. */
 [data-test="footer-player"] .upnext-container {
     background-color: transparent !important;
-    margin-left: 64px;
-    max-width: max(160px, calc(50vw - 301px));
+    margin-left: 16px;
+    width: max(0px, calc(50vw - 289px));
+    max-width: none;
+    margin-right: calc(-1 * max(0px, calc(50vw - 289px)));
 }
 
 
@@ -417,6 +422,15 @@ div[class*="_bar_"] button[class*="_button_"]:hover svg {
 /* Outline of each text field */
 [class*="MuiContainer"] .MuiTextField-root .MuiOutlinedInput-notchedOutline {
     border: 1px solid var(--theme-luna-box-border);
+}
+
+/* Switch that is turned off: MUI draws its track black at half opacity,
+   which disappears on the black page. The track gets a thin grey outline
+   (an inset shadow, so the size stays the same). */
+.MuiSwitch-switchBase:not(.Mui-checked) + .MuiSwitch-track {
+    opacity: 1;
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1px var(--theme-text-muted);
 }
 
 [class*="_sectionHeader"] {
@@ -629,6 +643,22 @@ body:has([data-test="query-suggestions"]) #mainHeader [data-test="search-popover
     background-color: var(--theme-surface) !important;
     border: var(--theme-border);
     box-shadow: none;
+}
+
+/* While a search field has the focus (the sidebar field and the one in the
+   "Add to playlist" dialog), TIDAL sets its text, caret, placeholder and
+   icon to black, for a light background. The field is dark here, so they
+   are light. !important because TIDAL sets the colour on the field. */
+[data-type="search-field"]:focus-within,
+[data-type="search-field"]:focus-within input {
+    color: var(--theme-text) !important;
+    -webkit-text-fill-color: var(--theme-text) !important;
+    caret-color: var(--theme-text) !important;
+}
+
+[data-type="search-field"]:focus-within input::placeholder,
+[data-type="search-field"]:focus-within svg {
+    color: var(--theme-text-muted) !important;
 }
 
 /* Search results panel below the field: wider than the sidebar and on
@@ -1764,6 +1794,19 @@ figure[data-test="now-playing-image"] {
 
 [class*="contextMenu"][role="menu"] > * {
     position: relative;
+}
+
+/* Container of a context menu. While the search results are open, the top
+   bar (and the results panel with its backdrop inside it) is at
+   z-index 1000, so the menu is raised above it, otherwise the backdrop
+   catches the clicks. The menu also moves 40px to the right, clear of the
+   results panel. translate leaves TIDAL's left and top alone. */
+:has(> [data-test="contextmenu"]) {
+    z-index: 1100 !important;
+}
+
+body:has([data-test="query-suggestions"]) :has(> [data-test="contextmenu"]) {
+    translate: 40px 0;
 }
 
 /* Entry of a context menu under the mouse, or the selected entry (TIDAL
