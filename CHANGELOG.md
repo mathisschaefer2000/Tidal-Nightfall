@@ -12,7 +12,7 @@ and the theme uses [Semantic Versioning](https://semver.org/).
 
 - Text, caret, placeholder and icon of a focused search field are readable again; the search field in the "Add to playlist" dialog showed black text on the dark field
 - The context menu of a search result opens above the search results and can be used; it also moves clear of the results panel
-- Title, artist and album in the player are no longer squeezed to a few pixels by the "Next up" box when the window is small
+- Title, artist and album in the player are no longer squeezed to a few pixels when the window is small
 - Turned-off switches on the Luna settings pages have a visible track outline instead of an invisible black track
 
 ## [1.1.0] - 2026-11-11
